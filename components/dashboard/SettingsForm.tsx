@@ -187,10 +187,25 @@ export default function SettingsForm({ initial }: { initial: SiteSettings }) {
           </p>
         </Section>
 
-        <Section title="Contact" hint="Shown in the footer on every page. Leave empty to hide.">
+        <Section title="Contact" hint="Email and phone show in the footer on every page (leave empty to hide). The phone and shop address are the sender on shipping labels.">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Support email" value={data.support_email} max={SETTINGS_LIMITS.support_email} onChange={(v) => set("support_email", v)} testId="set-email" />
             <Field label="Support phone / WhatsApp" value={data.support_phone} max={SETTINGS_LIMITS.support_phone} onChange={(v) => set("support_phone", v)} testId="set-phone" />
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor="set-address" className="text-sm text-dim">
+              Shop address <span className="text-faint">(shipping labels)</span>
+            </label>
+            <textarea
+              id="set-address"
+              rows={2}
+              value={data.shop_address}
+              maxLength={SETTINGS_LIMITS.shop_address}
+              onChange={(e) => set("shop_address", e.target.value)}
+              className={cx(inputClasses, "resize-y text-sm")}
+              placeholder="Street, number, city, postal code"
+              data-testid="set-address"
+            />
           </div>
         </Section>
 

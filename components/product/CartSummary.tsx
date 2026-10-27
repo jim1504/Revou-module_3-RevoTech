@@ -9,10 +9,10 @@ import { formatIDR } from "@/lib/format";
 /** Live item count and total, fed by the same CartContext the header badge reads. */
 export default function CartSummary({ className }: { className?: string }) {
   const { itemCount, total, isReady } = useCart();
-  const { isLoggedIn } = useAuth();
+  const { can } = useAuth();
 
   // guests have no cart (they get "Login to buy"), so there is nothing to summarise
-  if (!isLoggedIn) return null;
+  if (!can("orders:place")) return null; // guests and staff have no cart
 
   return (
     <aside

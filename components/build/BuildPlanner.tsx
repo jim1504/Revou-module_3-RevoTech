@@ -23,6 +23,7 @@ import {
 import { formatIDR } from "@/lib/format";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { toast } from "@/lib/toast";
+import { defaultVariant, hasVariants, labelOf } from "@/lib/variants";
 import type { Product } from "@/lib/types";
 
 const STORAGE_KEY = STORAGE_KEYS.build;
@@ -42,7 +43,7 @@ const PRESETS: { id: string; label: string; picks: Partial<Record<SlotId, number
 ];
 
 export default function BuildPlanner({ products }: { products: Product[] }) {
-  const { isLoggedIn, isReady } = useAuth();
+  const { isLoggedIn, isReady, can } = useAuth();
   const { addToCart, quantityOf } = useCart();
   const [picks, setPicks] = useState<Partial<Record<SlotId, number>>>({});
   const [ready, setReady] = useState(false);
@@ -98,10 +99,18 @@ export default function BuildPlanner({ products }: { products: Product[] }) {
     checks.filter((c) => c.slots.includes(id)).sort((a, b) => RANK[a.severity] - RANK[b.severity])[0];
   const { draw, recommended } = estimateDraw(build);
   const psuRated = build.psu ? psuWattsOf(build.psu) : null;
-  const buyable = parts.filter((p) => p.is_active && p.stock_quantity - quantityOf(p.product_id) > 0);
+  // a part with variants (a drive's capacity) goes in as its default variant, which the
+  // planner's price - the product's lowest - already reflects
+  const lines = parts.map((p) => {
+    const v = hasVariants(p) ? defaultVariant(p) : undefined;
+    return v
+      ? { ...p, price: v.price, stock_quantity: v.stock_quantity, variant_id: v.variant_id, variant_label: labelOf(p.option_groups ?? [], v.options) }
+      : p;
+  });
+  const buyable = lines.filter((l) => l.is_active && l.stock_quantity - quantityOf(l.product_id, "variant_id" in l ? l.variant_id : null) > 0);
 
   const addAll = () => {
-    buyable.forEach((p) => addToCart(p, 1));
+    buyable.forEach((l) => addToCart(l, 1));
     toast.success(`${buyable.length} parts added to your cart`);
   };
 
@@ -250,7 +259,11 @@ export default function BuildPlanner({ products }: { products: Product[] }) {
             </div>
           </div>
 
-          {!isReady ? null : isLoggedIn ? (
+          {!isReady ? null : isLoggedIn && !can("orders:place") ? (
+            <p className="text-center font-mono text-xs text-faint" data-testid="staff-no-order">
+              Staff accounts can&apos;t place orders
+            </p>
+          ) : isLoggedIn ? (
             <button type="button" onClick={addAll} disabled={buyable.length === 0 || errors > 0} className={cx(buttonVariants.primary, "w-full py-3")} data-testid="build-add-all">
               {errors > 0 ? "Fix compatibility first" : `Add ${buyable.length || ""} to cart`}
             </button>

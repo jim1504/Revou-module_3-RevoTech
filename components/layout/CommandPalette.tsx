@@ -50,7 +50,8 @@ function fuzzyScore(text: string, query: string): number | null {
 
 export default function CommandPalette() {
   const router = useRouter();
-  const { isLoggedIn, isAdmin } = useAuth();
+  const { isLoggedIn, isAdmin, can } = useAuth();
+  const canOrder = can("orders:place");
   const signOut = useSignOut();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -126,10 +127,10 @@ export default function CommandPalette() {
       { id: "nav-products", group: "Go to", label: "All products", keywords: "catalogue shop", run: () => go("/products") },
       { id: "nav-categories", group: "Go to", label: "Categories", run: () => go("/categories") },
       { id: "nav-build", group: "Go to", label: "Build planner", keywords: "pc rig compatibility", run: () => go("/build") },
-      ...(isLoggedIn
+      ...(canOrder
         ? [
             { id: "nav-cart", group: "Go to" as const, label: "Cart", keywords: "basket checkout", run: () => go("/cart") },
-            ...(isAdmin ? [] : [{ id: "nav-orders", group: "Go to" as const, label: "My orders", run: () => go("/orders") }]),
+            { id: "nav-orders", group: "Go to" as const, label: "My orders", run: () => go("/orders") },
           ]
         : []),
       ...(isAdmin
@@ -174,7 +175,7 @@ export default function CommandPalette() {
       run: () => go(`/products?category_id=${c.category_id}`),
     }));
     return [...nav, ...products, ...categories, ...account];
-  }, [catalog, isLoggedIn, isAdmin, go, signOut]);
+  }, [catalog, isLoggedIn, isAdmin, canOrder, go, signOut]);
 
   const results = useMemo(() => {
     if (!query.trim()) {

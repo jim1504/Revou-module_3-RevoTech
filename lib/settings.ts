@@ -15,6 +15,8 @@ export interface SiteSettings {
   date_style: "short" | "medium" | "long";
   support_email: string;
   support_phone: string;
+  /** the sender address printed on shipping labels; may be empty until set */
+  shop_address: string;
   /** neon glow around the logo in the header */
   logo_glow: boolean;
   logo_version: number;
@@ -42,15 +44,20 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   date_style: "medium",
   support_email: "support@revotech.id",
   support_phone: "+62 21 5000 1234",
+  shop_address: "",
   logo_glow: true,
   logo_version: 1,
 };
 
-export const SETTINGS_LIMITS = { shop_name: 40, tagline: 120, support_email: 120, support_phone: 30 } as const;
+export const SETTINGS_LIMITS = { shop_name: 40, tagline: 120, support_email: 120, support_phone: 30, shop_address: 200 } as const;
+
+/** Settings from the API, with defaults for fields it didn't have yet (e.g. shop_address on an older row). */
+export const withDefaults = (s: Partial<SiteSettings>): SiteSettings => ({ ...DEFAULT_SETTINGS, ...s });
 
 /** Error messages for a settings document; empty when valid. `logo_version` is managed by the server. */
 export function validateSettings(input: unknown): string[] {
-  const s = (input ?? {}) as Record<string, unknown>;
+  // shop_address is newer than the rest: a document without it (an older client) reads it as empty
+  const s: Record<string, unknown> = { shop_address: "", ...((input ?? {}) as Record<string, unknown>) };
   const errors: string[] = [];
   const text = (k: keyof typeof SETTINGS_LIMITS, required: boolean) => {
     const v = s[k];
@@ -62,6 +69,7 @@ export function validateSettings(input: unknown): string[] {
   text("tagline", false);
   text("support_email", false);
   text("support_phone", false);
+  text("shop_address", false);
   if (typeof s.support_email === "string" && s.support_email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.support_email.trim())) {
     errors.push("support_email must be an email address");
   }

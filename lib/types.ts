@@ -49,6 +49,31 @@ export interface Product {
   specs?: SpecRow[];
   /** the page the specs were taken from - the product page, or a separate spec page */
   specs_source?: string | null;
+  /**
+   * Variants (migration b5e2c7a91d04): the choices in display order, and one row per buyable
+   * combination. With variants, `price` is the lowest active variant's price and
+   * `stock_quantity` their total, so lists and cards read the product as before.
+   */
+  option_groups?: OptionGroup[];
+  variants?: ProductVariant[];
+}
+
+/** One choice a buyer makes, e.g. { name: "Capacity", values: ["1TB", "2TB"] }. */
+export interface OptionGroup {
+  name: string;
+  values: string[];
+}
+
+/** One buyable combination, e.g. { "Capacity": "2TB" }, with its own price and stock. */
+export interface ProductVariant {
+  variant_id: number;
+  options: Record<string, string>;
+  price: number;
+  stock_quantity: number;
+  /** one of the product's images, shown when this variant is picked */
+  image: string | null;
+  /** false once retired: it stays because past orders point at it, but can't be bought */
+  is_active: boolean;
 }
 
 /** Gallery size limit, shared by the API's validation and the dashboard's image manager. */
@@ -68,6 +93,19 @@ export interface ProductInput {
   images?: string[];
   specs?: SpecRow[];
   specs_source?: string | null;
+  /** sent together; with variants, price and stock_quantity are derived by the API */
+  option_groups?: OptionGroup[];
+  variants?: VariantInput[];
+}
+
+/** A variant as the product form sends it: no id yet for a new one. */
+export interface VariantInput {
+  variant_id?: number;
+  options: Record<string, string>;
+  price: number;
+  stock_quantity: number;
+  image?: string | null;
+  is_active?: boolean;
 }
 
 export interface User {
@@ -88,6 +126,9 @@ export interface OrderItem {
   order_item_id: number;
   product_id: number;
   product_name: string;
+  /** the variant bought and its label at the time, e.g. "2TB · White"; null without variants */
+  variant_id?: number | null;
+  variant_label?: string | null;
   quantity: number;
   unit_price: number;
   line_total: number;
@@ -102,21 +143,37 @@ export interface Order {
   shipping_address: string;
   ordered_at: string;
   item_count?: number;
+  /** for the shipping label: who receives it (recorded at checkout) and how it travels */
+  recipient_name?: string | null;
+  recipient_phone?: string | null;
+  courier?: Courier | null;
+  tracking_number?: string | null;
 }
+
+/** The couriers an order can be shipped with - the API's list. */
+export const COURIERS = ["JNE", "J&T Express", "SiCepat", "AnterAja", "Pos Indonesia", "GoSend", "GrabExpress", "Other"] as const;
+export type Courier = (typeof COURIERS)[number];
 
 export interface OrderDetail extends Order {
   items: OrderItem[];
+  /** the account's phone, for orders placed before recipient_phone was recorded */
+  customer_phone?: string | null;
 }
 
+/** What POST /orders accepts. The owner is the signed-in customer, taken from the token. */
 export interface OrderInput {
-  user_id: number;
   shipping_address: string;
-  items: { product_id: number; quantity: number }[];
+  recipient_name: string;
+  recipient_phone: string;
+  items: { product_id: number; variant_id?: number; quantity: number }[];
 }
 
 export interface CartItem {
   product_id: number;
   product_name: string;
+  /** set for a product with variants: which one, and its label ("2TB · White") */
+  variant_id?: number;
+  variant_label?: string;
   price: number;
   quantity: number;
   stock_quantity: number;

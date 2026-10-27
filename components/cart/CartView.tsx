@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProductImage from "@/components/product/ProductImage";
 import QuantityCounter from "@/components/ui/QuantityCounter";
-import { useCart } from "@/context/CartContext";
+import { keyOf, useCart } from "@/context/CartContext";
 import { buttonVariants, cx } from "@/lib/classes";
 import { formatIDR } from "@/lib/format";
 import { toast } from "@/lib/toast";
@@ -55,7 +55,7 @@ export default function CartView() {
               </thead>
               <tbody>
                 {items.map((item) => (
-                  <tr key={item.product_id} className="border-b border-line/60 last:border-0" data-testid="cart-row">
+                  <tr key={keyOf(item)} className="border-b border-line/60 last:border-0" data-testid="cart-row">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-4">
                         <ProductImage
@@ -63,9 +63,16 @@ export default function CartView() {
                           sizes="64px"
                           className="size-14 shrink-0 rounded-lg border border-line"
                         />
-                        <Link href={`/products/${item.product_id}`} className="font-medium hover:text-cyan">
-                          {item.product_name}
-                        </Link>
+                        <div>
+                          <Link href={`/products/${item.product_id}`} className="font-medium hover:text-cyan">
+                            {item.product_name}
+                          </Link>
+                          {item.variant_label && (
+                            <p className="font-mono text-xs text-dim" data-testid="cart-variant">
+                              {item.variant_label}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-3 py-4 text-right font-mono text-dim tabular">{formatIDR(item.price)}</td>
@@ -74,8 +81,8 @@ export default function CartView() {
                         size="sm"
                         value={item.quantity}
                         max={item.stock_quantity}
-                        onChange={(q) => updateQuantity(item.product_id, q)}
-                        label={`Quantity of ${item.product_name}`}
+                        onChange={(q) => updateQuantity(keyOf(item), q)}
+                        label={`Quantity of ${item.product_name}${item.variant_label ? ` ${item.variant_label}` : ""}`}
                       />
                     </td>
                     <td className="px-3 py-4 text-right font-mono text-ink tabular" data-testid="cart-line-total">
@@ -85,8 +92,8 @@ export default function CartView() {
                       <button
                         type="button"
                         onClick={() => {
-                          removeFromCart(item.product_id);
-                          toast.success(`Removed ${item.product_name}`);
+                          removeFromCart(keyOf(item));
+                          toast.success(`Removed ${item.product_name}${item.variant_label ? ` (${item.variant_label})` : ""}`);
                         }}
                         className="rounded-lg px-2 py-1 font-mono text-xs text-faint transition hover:bg-rose/10 hover:text-rose"
                         aria-label={`Remove ${item.product_name} from cart`}

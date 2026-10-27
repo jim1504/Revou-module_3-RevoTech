@@ -65,6 +65,11 @@ export default function OrderDetailView({ id }: { id: number }) {
                 <Link href={`/products/${i.product_id}`} className="font-medium hover:text-cyan">
                   {i.product_name}
                 </Link>
+                {i.variant_label && (
+                  <p className="font-mono text-xs text-dim" data-testid="order-item-variant">
+                    {i.variant_label}
+                  </p>
+                )}
                 <p className="font-mono text-xs text-faint">
                   {i.quantity} × {formatIDR(i.unit_price)}
                 </p>
@@ -87,8 +92,20 @@ export default function OrderDetailView({ id }: { id: number }) {
           </div>
           <div>
             <dt className="text-faint">Ship to</dt>
-            <dd className="whitespace-pre-line">{order.shipping_address}</dd>
+            <dd className="whitespace-pre-line">
+              {order.recipient_name && <span className="block text-ink">{order.recipient_name}</span>}
+              {order.recipient_phone && <span className="block font-mono text-xs text-dim">{order.recipient_phone}</span>}
+              {order.shipping_address}
+            </dd>
           </div>
+          {order.courier && order.tracking_number && (
+            <div data-testid="order-tracking">
+              <dt className="text-faint">Shipped with</dt>
+              <dd>
+                {order.courier} · <span className="font-mono">resi {order.tracking_number}</span>
+              </dd>
+            </div>
+          )}
           <div className="flex items-baseline justify-between border-t border-line pt-3">
             <dt className="text-dim">Total</dt>
             <dd className="font-mono text-xl font-semibold tabular" data-testid="order-total">

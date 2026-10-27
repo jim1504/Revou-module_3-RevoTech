@@ -15,13 +15,13 @@ import type { OrderStatus } from "@/lib/types";
 const STEPS: OrderStatus[] = ["pending", "paid", "shipped", "delivered"];
 
 /**
- * The signed-in user's orders. GET /orders needs their token, so this loads in the browser. The
- * API scopes the list by the token - but answers staff with every customer's order, so the list
- * is narrowed to the user's own purchases here.
+ * The signed-in customer's orders. GET /orders needs their token, so this loads in the browser;
+ * the API scopes the list to the token's owner. Only customers get here (CustomerRoute) - staff
+ * handle orders in the dashboard and don't place any.
  */
 export default function OrdersView() {
   const { fmt } = useSettings();
-  const { currentUser, isAdmin } = useAuth();
+  const { currentUser } = useAuth();
   const { data: orders, error } = useApiData(currentUser ? `orders:${currentUser.id}` : null, api.orders);
   if (error) throw error; // -> app/orders/error.tsx
 
@@ -36,21 +36,9 @@ export default function OrdersView() {
   }
   const mine = orders.filter((o) => o.user_id === currentUser?.id);
 
-  // admins handle everyone's orders in the dashboard; this page is only their own purchases
-  const adminNote = isAdmin && (
-    <p className="mb-4 rounded-xl border border-magenta/40 bg-magenta/5 px-4 py-3 text-sm text-dim" data-testid="orders-admin-note">
-      These are your own purchases. To handle customers&apos; orders, go to{" "}
-      <Link href="/dashboard/orders" className="text-cyan hover:underline">
-        Dashboard → Orders
-      </Link>
-      .
-    </p>
-  );
-
   if (mine.length === 0) {
     return (
       <>
-        {adminNote}
         <div className="panel grid place-items-center gap-4 px-6 py-20 text-center" data-testid="orders-empty">
           <p className="font-mono text-xs tracking-[0.24em] text-faint uppercase">{"// "}no orders yet</p>
           <p className="text-dim">When you check out, your orders show up here.</p>
@@ -64,7 +52,6 @@ export default function OrdersView() {
 
   return (
     <>
-      {adminNote}
       <ul className="space-y-4" data-testid="orders-list">
         {mine.map((o) => {
           const step = STEPS.indexOf(o.order_status);

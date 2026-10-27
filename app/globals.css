@@ -256,3 +256,32 @@
     animation: none !important;
   }
 }
+
+/* ---------- printing: shipping labels -------------------------------------- */
+/* The label sheet (dashboard/orders/labels) prints one 100 x 150 mm sticker per page. A named page
+   keeps that size to the labels - printing any other page is unaffected. The site chrome and the
+   sheet's own toolbar (.print-hide) are left out, and the page is plain white. */
+@page shipping-label {
+  size: 100mm 150mm;
+  margin: 0;
+}
+@media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+  .print-hide,
+  [data-testid="site-header"],
+  [data-testid="dashboard-sidebar"],
+  [data-testid="site-footer"] {
+    display: none !important;
+  }
+  .print-labels {
+    display: block !important;
+  }
+  .shipping-label {
+    page: shipping-label;
+    break-after: page;
+    border: 0 !important;
+  }
+}

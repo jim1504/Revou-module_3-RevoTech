@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState, ViewTransition, type PointerEvent } from "react";
+import { useVariantSelection } from "@/components/product/VariantSelection";
 import { cx } from "@/lib/classes";
 import { galleryFor } from "@/lib/meta";
 import type { Product } from "@/lib/types";
@@ -21,6 +22,15 @@ const ZOOM = 2.5;
 export default function ProductGallery({ product, className }: { product: Product; className?: string }) {
   const images = galleryFor(product);
   const [active, setActive] = useState(0);
+  // Picking a variant that has its own photo (say, the white one) shows that photo. Adjusting
+  // state while rendering, when the picked photo changes, rather than in an effect.
+  const picked = useVariantSelection()?.variant?.image ?? null;
+  const [shownPick, setShownPick] = useState(picked);
+  if (picked !== shownPick) {
+    setShownPick(picked);
+    const index = picked ? images.findIndex((img) => img.src === picked) : -1;
+    if (index >= 0) setActive(index);
+  }
   const current = images[Math.min(active, images.length - 1)];
   const dimmed = !product.is_active;
   /** pointer position over the frame in percent, or null when not zooming */

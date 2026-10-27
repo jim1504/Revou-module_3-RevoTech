@@ -40,6 +40,28 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 }
 
 /**
+ * The shopping side - cart, checkout, own orders: customers only (orders:place). Logged-out users
+ * go to /login and come back; staff, who manage orders but don't place them, go to the
+ * dashboard's order list.
+ */
+export function CustomerRoute({ children }: { children: ReactNode }) {
+  const { isLoggedIn, currentUser, isReady } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const allowed = isLoggedIn && can(currentUser?.role, "orders:place");
+
+  useEffect(() => {
+    if (!isReady || allowed) return;
+    router.replace(isLoggedIn ? "/dashboard/orders" : `/login?next=${encodeURIComponent(pathname)}`);
+  }, [isReady, isLoggedIn, allowed, router, pathname]);
+
+  if (!isReady || !allowed) {
+    return <Holding label={!isReady ? "Checking session" : isLoggedIn ? "Customers only — redirecting" : "Redirecting to login"} />;
+  }
+  return <>{children}</>;
+}
+
+/**
  * One permission, one page. Logged-out users go to /login; a customer goes home; a staff member
  * who simply lacks this one permission (an admin opening Settings) goes back to the dashboard
  * rather than out of it.

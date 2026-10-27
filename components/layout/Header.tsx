@@ -37,7 +37,7 @@ function isActive(pathname: string, href: string) {
 
 export default function Header() {
   const pathname = usePathname();
-  const { currentUser, isLoggedIn, isStaff, isReady } = useAuth();
+  const { currentUser, isLoggedIn, isStaff, isReady, can } = useAuth();
   const settings = useSettings();
   const { itemCount, total, isReady: cartReady } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -107,9 +107,9 @@ export default function Header() {
         </div>
 
         <div className="ml-auto flex items-center gap-2 xl:ml-0">
-          {/* the cart belongs to a signed-in session: guests see "Login to buy" instead, and signing
-              out empties it, so the button (with its count and total) only exists while logged in */}
-          {isLoggedIn && (
+          {/* the cart belongs to a signed-in customer: guests see "Login to buy" instead, staff don't
+              shop (orders:place), and signing out empties it - so the button only exists for customers */}
+          {can("orders:place") && (
           <Link
             href="/cart"
             className={cx(

@@ -1,15 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ApiError, describeError } from "@/lib/api";
 import { useSettings } from "@/context/SettingsContext";
-import { api } from "@/lib/api.client";
+import { api, type OrderUpdate } from "@/lib/api.client";
 import { buttonVariants, cx, inputClasses } from "@/lib/classes";
 import { formatIDR, STATUS_LABEL } from "@/lib/format";
 import { toast } from "@/lib/toast";
-import type { OrderDetail, OrderStatus } from "@/lib/types";
+import { COURIERS, type Courier, type OrderDetail, type OrderStatus } from "@/lib/types";
 
 export const PIPELINE: OrderStatus[] = ["pending", "paid", "shipped", "delivered"];
 
@@ -22,15 +23,25 @@ export const NEXT_STEP: Partial<Record<OrderStatus, { to: OrderStatus; label: st
 
 export const orderNo = (id: number) => `#${String(id).padStart(4, "0")}`;
 
+/** Orders that have been paid for get a shipping label. */
+export const LABEL_STATUSES: OrderStatus[] = ["paid", "shipped", "delivered"];
+export const labelsHref = (ids: number[]) => `/dashboard/orders/labels?ids=${ids.join(",")}`;
+
+// the API's rule for tracking_number (resi)
+const TRACKING = /^[A-Za-z0-9-]{4,40}$/;
+
 /**
- * One order, for the admin: its lines, where it is in the pipeline, and the two things PUT
- * /orders/[id] can change - the status (any step, cancel, reopen) and the shipping address.
+ * One order, for the admin: its lines, where it is in the pipeline, and what PUT /orders/[id] can
+ * change - the status (any step, cancel, reopen), the shipping address, and the courier with its
+ * tracking number, which marking it shipped requires. Paid orders link to their shipping label.
  */
 export default function OrderManager({ orderId, onChanged }: { orderId: number; onChanged: (order: OrderDetail) => void }) {
   const { fmt } = useSettings();
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [address, setAddress] = useState("");
+  const [courier, setCourier] = useState<Courier | "">("");
+  const [tracking, setTracking] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +53,8 @@ export default function OrderManager({ orderId, onChanged }: { orderId: number; 
         if (cancelled) return;
         setOrder(o);
         setAddress(o.shipping_address);
+        setCourier(o.courier ?? "");
+        setTracking(o.tracking_number ?? "");
       })
       .catch((e) => !cancelled && setLoadError(describeError(e)));
     return () => {
@@ -49,7 +62,7 @@ export default function OrderManager({ orderId, onChanged }: { orderId: number; 
     };
   }, [orderId]);
 
-  async function update(data: { order_status?: OrderStatus; shipping_address?: string }, success: string) {
+  async function update(data: OrderUpdate, success: string) {
     setBusy(true);
     setError(null);
     try {
@@ -79,7 +92,20 @@ export default function OrderManager({ orderId, onChanged }: { orderId: number; 
 
   const cancelled = order.order_status === "cancelled";
   const step = PIPELINE.indexOf(order.order_status);
-  const setStatus = (to: OrderStatus) => update({ order_status: to }, `${orderNo(orderId)} marked as ${STATUS_LABEL[to].toLowerCase()}`);
+  const shippingReady = Boolean(courier) && TRACKING.test(tracking.trim());
+  const shippingFields = { courier: courier || null, tracking_number: tracking.trim() || null };
+  const setStatus = (to: OrderStatus) => {
+    // shipping needs the courier and its resi - send them with the status
+    if (to === "shipped" && order.order_status !== "shipped") {
+      if (!shippingReady) {
+        setError("Choose the courier and enter the tracking number (resi) under Shipping first.");
+        document.getElementById("om-courier")?.focus();
+        return;
+      }
+      return update({ order_status: to, ...shippingFields }, `${orderNo(orderId)} shipped with ${courier}`);
+    }
+    return update({ order_status: to }, `${orderNo(orderId)} marked as ${STATUS_LABEL[to].toLowerCase()}`);
+  };
 
   return (
     <div className="space-y-6" data-testid="order-manager">
@@ -87,6 +113,17 @@ export default function OrderManager({ orderId, onChanged }: { orderId: number; 
         <StatusBadge status={order.order_status} />
         <span className="text-dim">{order.username ?? `User ${order.user_id}`}</span>
         <span className="text-faint">· placed {fmt.dateTime(order.ordered_at)}</span>
+        {LABEL_STATUSES.includes(order.order_status) && (
+          <Link
+            href={labelsHref([order.order_id])}
+            target="_blank"
+            rel="noopener"
+            className={cx(buttonVariants.secondary, "ml-auto px-3 py-1.5 text-xs")}
+            data-testid="om-print-label"
+          >
+            Print label
+          </Link>
+        )}
       </div>
 
       {/* status pipeline: every step is a button - Flask allows any status to follow any other */}
@@ -158,7 +195,10 @@ export default function OrderManager({ orderId, onChanged }: { orderId: number; 
           <tbody className="divide-y divide-line">
             {order.items.map((i) => (
               <tr key={i.order_item_id}>
-                <td className="py-2 pr-3">{i.product_name}</td>
+                <td className="py-2 pr-3">
+                  {i.product_name}
+                  {i.variant_label && <span className="block font-mono text-xs text-dim">{i.variant_label}</span>}
+                </td>
                 <td className="py-2 pr-3 text-right font-mono text-dim tabular">
                   {i.quantity} × {formatIDR(i.unit_price)}
                 </td>
@@ -175,6 +215,48 @@ export default function OrderManager({ orderId, onChanged }: { orderId: number; 
             </tr>
           </tfoot>
         </table>
+      </section>
+
+      <section aria-labelledby="om-shipping" className="space-y-2">
+        <h3 id="om-shipping" className="font-mono text-[0.68rem] tracking-[0.16em] text-cyan uppercase">
+          Shipping
+        </h3>
+        <p className="text-sm text-dim">
+          To {order.recipient_name ?? order.username ?? "—"} · {order.recipient_phone ?? order.customer_phone ?? "no phone on file"}
+        </p>
+        <div className="grid gap-2 sm:grid-cols-[12rem_1fr_auto]">
+          <select
+            id="om-courier"
+            aria-label="Courier"
+            value={courier}
+            onChange={(e) => setCourier(e.target.value as Courier | "")}
+            className={cx(inputClasses, "text-sm")}
+            data-testid="om-courier"
+          >
+            <option value="">Courier…</option>
+            {COURIERS.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+          <input
+            aria-label="Tracking number (resi)"
+            value={tracking}
+            maxLength={40}
+            onChange={(e) => setTracking(e.target.value)}
+            placeholder="Tracking number (resi)"
+            className={cx(inputClasses, "font-mono text-sm")}
+            data-testid="om-tracking"
+          />
+          <button
+            type="button"
+            disabled={busy || !shippingReady || (courier === (order.courier ?? "") && tracking.trim() === (order.tracking_number ?? ""))}
+            onClick={() => update(shippingFields, `${orderNo(orderId)} courier saved`)}
+            className={cx(buttonVariants.secondary, "px-4 py-2 text-xs")}
+            data-testid="om-save-shipping"
+          >
+            Save
+          </button>
+        </div>
       </section>
 
       <section aria-labelledby="om-address" className="space-y-2">

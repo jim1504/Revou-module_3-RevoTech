@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AddProductForm, { type FormState } from "@/components/dashboard/AddProductForm";
+import { toDraft } from "@/components/dashboard/VariantsEditor";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ApiError, describeError } from "@/lib/api";
 import { api } from "@/lib/api.client";
@@ -49,6 +50,7 @@ const toForm = (p: Product): FormState => ({
   specs: p.specs ?? [],
   // shown only when the specs came from somewhere other than the official page
   specs_url: p.specs_source && p.specs_source !== p.official_url ? p.specs_source : "",
+  variants: toDraft(p),
 });
 
 /**

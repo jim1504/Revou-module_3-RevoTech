@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ProtectedRoute } from "@/components/auth/Guards";
+import { CustomerRoute } from "@/components/auth/Guards";
 import OrderDetailView from "@/components/orders/OrderDetailView";
 import PageHeader from "@/components/ui/PageHeader";
 
@@ -19,9 +19,9 @@ export default async function OrderPage({ params }: PageProps<"/orders/[id]">) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <PageHeader eyebrow="Order detail" title={`Order #${String(orderId).padStart(4, "0")}`} />
-      <ProtectedRoute>
+      <CustomerRoute>
         <OrderDetailView id={orderId} />
-      </ProtectedRoute>
+      </CustomerRoute>
     </div>
   );
 }

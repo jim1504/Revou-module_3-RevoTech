@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import ImageManager from "@/components/dashboard/ImageManager";
 import SpecsEditor from "@/components/dashboard/SpecsEditor";
+import VariantsEditor, { EMPTY_VARIANTS, parseGroups, toVariantInput, validateVariants, type VariantsDraft } from "@/components/dashboard/VariantsEditor";
 import { ApiError, describeError } from "@/lib/api";
 import { officialPreview } from "@/lib/api.client";
 import { buttonVariants, cx, inputClasses } from "@/lib/classes";
@@ -25,6 +26,8 @@ export interface FormState {
   specs: SpecRow[];
   /** a separate spec page; blank means the specs come from the official page */
   specs_url: string;
+  /** options (Capacity, Color...) and a row per combination; empty groups = no variants */
+  variants: VariantsDraft;
 }
 
 export type FormErrors = Partial<Record<keyof FormState, string>>;
@@ -42,7 +45,11 @@ export const EMPTY_FORM: FormState = {
   images: [],
   specs: [],
   specs_url: "",
+  variants: EMPTY_VARIANTS,
 };
+
+/** With variants, price and stock are set per variant and the product's follow from them. */
+const usesVariants = (d: FormState) => parseGroups(d.variants.groups).length > 0;
 
 const MAX_OVERVIEW = 2000;
 
@@ -61,12 +68,16 @@ export function validate(data: FormState): FormErrors {
   if (!data.product_name.trim()) errors.product_name = "Product name is required.";
   else if (data.product_name.trim().length > 150) errors.product_name = "Keep it under 150 characters.";
   if (!data.category_id) errors.category_id = "Pick a category.";
-  const price = Number(data.price);
-  if (data.price.trim() === "" || Number.isNaN(price)) errors.price = "Price is required.";
-  else if (price < 0) errors.price = "Price can't be negative.";
-  const stock = Number(data.stock_quantity);
-  if (!Number.isInteger(stock)) errors.stock_quantity = "Stock must be a whole number.";
-  else if (stock < 0) errors.stock_quantity = "Stock can't be negative.";
+  if (!usesVariants(data)) {
+    const price = Number(data.price);
+    if (data.price.trim() === "" || Number.isNaN(price)) errors.price = "Price is required.";
+    else if (price < 0) errors.price = "Price can't be negative.";
+    const stock = Number(data.stock_quantity);
+    if (!Number.isInteger(stock)) errors.stock_quantity = "Stock must be a whole number.";
+    else if (stock < 0) errors.stock_quantity = "Stock can't be negative.";
+  }
+  const variantError = validateVariants(data.variants, data.price);
+  if (variantError) errors.variants = variantError;
   if (data.official_url.trim() && !isHttpUrl(data.official_url.trim())) {
     errors.official_url = "Use the full address, starting with https://";
   }
@@ -78,8 +89,10 @@ export function validate(data: FormState): FormErrors {
 export const toInput = (d: FormState): ProductInput => ({
   product_name: d.product_name.trim(),
   category_id: Number(d.category_id),
-  price: Number(d.price),
-  stock_quantity: Number(d.stock_quantity),
+  // with variants the API derives these from them; without, they are the product's own
+  price: Number(d.price) || 0,
+  stock_quantity: Number(d.stock_quantity) || 0,
+  ...toVariantInput(d.variants, d.price),
   description: d.description.trim(),
   is_active: d.is_active,
   official_url: d.official_url.trim() || null,
@@ -203,7 +216,8 @@ export default function AddProductForm({
         <label htmlFor="pf-price" className="text-sm text-dim">
           Price (IDR)
         </label>
-        <input id="pf-price" type="number" inputMode="numeric" min={0} step={1000} value={data.price} onChange={(e) => set("price", e.target.value)} className={cx(inputClasses, "font-mono")} data-testid="pf-price" {...describe("price")} />
+        <input id="pf-price" type="number" inputMode="numeric" min={0} step={1000} value={data.price} disabled={usesVariants(data)} onChange={(e) => set("price", e.target.value)} className={cx(inputClasses, "font-mono disabled:opacity-50")} data-testid="pf-price" {...describe("price")} />
+        {usesVariants(data) && <p className="text-xs text-faint">Set per variant — the lowest is shown as &ldquo;from&rdquo;.</p>}
         {message("price")}
       </div>
 
@@ -211,7 +225,8 @@ export default function AddProductForm({
         <label htmlFor="pf-stock" className="text-sm text-dim">
           Stock
         </label>
-        <input id="pf-stock" type="number" inputMode="numeric" min={0} step={1} value={data.stock_quantity} onChange={(e) => set("stock_quantity", e.target.value)} className={cx(inputClasses, "font-mono")} data-testid="pf-stock" {...describe("stock_quantity")} />
+        <input id="pf-stock" type="number" inputMode="numeric" min={0} step={1} value={data.stock_quantity} disabled={usesVariants(data)} onChange={(e) => set("stock_quantity", e.target.value)} className={cx(inputClasses, "font-mono disabled:opacity-50")} data-testid="pf-stock" {...describe("stock_quantity")} />
+        {usesVariants(data) && <p className="text-xs text-faint">Set per variant — this is their total.</p>}
         {message("stock_quantity")}
       </div>
 
@@ -309,6 +324,10 @@ export default function AddProductForm({
 
       <div className="sm:col-span-2">
         <ImageManager value={data.images} onChange={(update) => setData((d) => ({ ...d, images: update(d.images) }))} />
+      </div>
+
+      <div className="sm:col-span-2">
+        <VariantsEditor value={data.variants} onChange={(v) => set("variants", v)} images={data.images} fallbackPrice={data.price} error={errors.variants} />
       </div>
 
       <div className="flex justify-end gap-3 pt-2 sm:col-span-2">

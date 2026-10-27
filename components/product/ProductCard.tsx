@@ -8,10 +8,12 @@ import { AvailabilityBadge, Badge } from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import QuantityCounter from "@/components/ui/QuantityCounter";
 import StockMeter from "@/components/ui/StockMeter";
+import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { cx } from "@/lib/classes";
 import { availabilityOf, formatIDR, specText } from "@/lib/format";
 import { metaFor } from "@/lib/meta";
+import { hasVariants, priceRange } from "@/lib/variants";
 import type { Product } from "@/lib/types";
 
 export interface ProductCardProps {
@@ -40,12 +42,17 @@ export default function ProductCard({
   readOnly = false,
 }: ProductCardProps) {
   const [quantity, setQuantity] = useState(1);
-  const { quantityOf } = useCart();
+  const { items } = useCart();
+  const { can } = useAuth();
 
   const meta = metaFor(product);
   const availability = availabilityOf(product);
-  const inCart = quantityOf(product.product_id);
-  const purchasable = availability === "in-stock" || availability === "low-stock";
+  // every line of this product - with variants, 1TB and 2TB are separate lines
+  const inCart = items.filter((i) => i.product_id === product.product_id).reduce((n, i) => n + i.quantity, 0);
+  const withVariants = hasVariants(product);
+  const range = priceRange(product);
+  // a variant product is bought from its page, where the variant is picked
+  const purchasable = can("orders:place") && !withVariants && (availability === "in-stock" || availability === "low-stock");
   const maxQty = Math.max(1, product.stock_quantity - inCart);
   const href = `/products/${product.product_id}`;
 
@@ -116,6 +123,7 @@ export default function ProductCard({
 
         <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-3">
           <p className="font-mono text-lg font-semibold text-ink tabular" data-testid="product-price">
+            {withVariants && range.min < range.max && <span className="mr-1.5 text-xs font-normal text-faint">from</span>}
             {formatIDR(product.price)}
           </p>
         </div>

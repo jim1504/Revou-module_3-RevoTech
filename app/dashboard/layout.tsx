@@ -8,7 +8,7 @@ import DashboardNav from "@/components/dashboard/DashboardNav";
 export default function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
   return (
     <AdminRoute>
-      <div className="px-4 py-6 sm:px-6 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8 lg:py-8 xl:px-8">
+      <div className="px-4 py-6 sm:px-6 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-8 lg:py-8 xl:px-8 print:block print:p-0">
         <DashboardNav />
         <div className="min-w-0">{children}</div>
       </div>

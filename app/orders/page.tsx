@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ProtectedRoute } from "@/components/auth/Guards";
+import { CustomerRoute } from "@/components/auth/Guards";
 import OrdersView from "@/components/orders/OrdersView";
 import PageHeader from "@/components/ui/PageHeader";
 
@@ -11,9 +11,9 @@ export default function OrdersPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
       <PageHeader eyebrow="Account" title="My orders" />
-      <ProtectedRoute>
+      <CustomerRoute>
         <OrdersView />
-      </ProtectedRoute>
+      </CustomerRoute>
     </div>
   );
 }

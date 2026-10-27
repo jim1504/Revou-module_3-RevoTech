@@ -2,7 +2,7 @@ import "server-only";
 
 import { ApiError, backendUrl } from "@/lib/api";
 import type { AboutContent, HomeContent } from "@/lib/content";
-import type { SiteSettings } from "@/lib/settings";
+import { withDefaults, type SiteSettings } from "@/lib/settings";
 import { TAG } from "@/lib/server/cache-tags";
 import type { Category, CategoryDetail, Product } from "@/lib/types";
 
@@ -54,6 +54,6 @@ export const serverApi = {
   categories: (opts?: FetchOptions) => get<(Category & { product_count?: number })[]>("/categories", opts),
   category: (id: string | number, opts?: FetchOptions) => get<CategoryDetail>(`/categories/${id}`, opts),
   home: (opts?: FetchOptions) => get<HomeContent>("/content/home", opts),
-  settings: (opts?: FetchOptions) => get<SiteSettings>("/settings", opts),
+  settings: (opts?: FetchOptions) => get<SiteSettings>("/settings", opts).then(withDefaults),
   about: (opts?: FetchOptions) => get<AboutContent>("/content/about", opts),
 };

@@ -26,7 +26,7 @@ export const ROLE_LABEL: Record<Role, string> = {
 export const ROLE_BLURB: Record<Role, string> = {
   superadmin: "Everything an admin can do, plus user accounts, roles, passwords, and the store settings.",
   admin: "The shop floor: products and stock, categories, orders, and the homepage and About content.",
-  customer: "Shopping, and their own profile and password.",
+  customer: "Shopping and ordering, and their own orders, profile and password.",
 };
 
 export type Permission =
@@ -40,9 +40,12 @@ export type Permission =
   /** shop name, logo, time zone, contact details */
   | "settings:write"
   /** list users, change their role, reset their password */
-  | "users:manage";
+  | "users:manage"
+  /** buy: add to cart, check out, place an order. Customers only - staff run the shop, they don't shop in it */
+  | "orders:place";
 
-export const PERMISSIONS: Permission[] = [
+/** The permissions that come with a dashboard. */
+export const STAFF_PERMISSIONS: Permission[] = [
   "products:write",
   "categories:write",
   "orders:manage",
@@ -51,6 +54,8 @@ export const PERMISSIONS: Permission[] = [
   "users:manage",
 ];
 
+export const PERMISSIONS: Permission[] = [...STAFF_PERMISSIONS, "orders:place"];
+
 export const PERMISSION_LABEL: Record<Permission, string> = {
   "products:write": "Products & stock",
   "categories:write": "Categories",
@@ -58,14 +63,15 @@ export const PERMISSION_LABEL: Record<Permission, string> = {
   "content:write": "Homepage & About",
   "settings:write": "Store settings",
   "users:manage": "Users & roles",
+  "orders:place": "Place orders",
 };
 
 const STAFF: Permission[] = ["products:write", "categories:write", "orders:manage", "content:write"];
 
 const GRANTS: Record<Role, Permission[]> = {
-  superadmin: PERMISSIONS,
+  superadmin: STAFF_PERMISSIONS,
   admin: STAFF,
-  customer: [],
+  customer: ["orders:place"],
 };
 
 export const grantsOf = (role: Role): Permission[] => GRANTS[role] ?? [];
@@ -75,6 +81,7 @@ export function can(role: Role | null | undefined, permission: Permission): bool
 }
 
 /** Anyone with a dashboard: admins and superadmins. Customers never see it. */
-export const isStaff = (role: Role | null | undefined): boolean => Boolean(role) && grantsOf(role as Role).length > 0;
+export const isStaff = (role: Role | null | undefined): boolean =>
+  Boolean(role) && grantsOf(role as Role).some((p) => STAFF_PERMISSIONS.includes(p));
 
 export const isRole = (v: unknown): v is Role => typeof v === "string" && (ROLES as string[]).includes(v);

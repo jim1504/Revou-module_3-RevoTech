@@ -1,9 +1,10 @@
 import { ApiError, apiBase } from "@/lib/api";
 import type { AboutContent, HomeContent } from "@/lib/content";
-import type { SiteSettings } from "@/lib/settings";
+import { withDefaults, type SiteSettings } from "@/lib/settings";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type {
   Category,
+  Courier,
   Order,
   OrderDetail,
   OrderInput,
@@ -106,6 +107,14 @@ async function releaseUploads(urls: string[]) {
 
 type Created<K extends string, T> = { message: string } & Record<K, T>;
 
+/** What PUT /orders/:id accepts (order managers). Marking an order shipped needs courier + tracking_number. */
+export interface OrderUpdate {
+  order_status?: OrderStatus;
+  shipping_address?: string;
+  courier?: Courier | null;
+  tracking_number?: string | null;
+}
+
 export const api = {
   /* catalogue */
   products: (params: { search?: string; category_id?: string | number } = {}, signal?: AbortSignal) => {
@@ -160,7 +169,7 @@ export const api = {
   createOrder: (data: OrderInput) =>
     write(CATALOG, () => request<{ message: string; order: OrderDetail }>("/orders", { method: "POST", body: data })),
   /** cancelling or reopening moves stock (`stock_changed`) */
-  updateOrder: async (id: number, data: { order_status?: OrderStatus; shipping_address?: string }) => {
+  updateOrder: async (id: number, data: OrderUpdate) => {
     const res = await request<Created<"order", OrderDetail> & { stock_changed?: boolean }>(`/orders/${id}`, { method: "PUT", body: data });
     if (res.stock_changed) await refreshPages(CATALOG);
     return res;
@@ -205,7 +214,7 @@ const traceLogo = (file: Blob, name: string) => local<TracedLogo>("/logo/vectori
 const SETTINGS = ["settings"];
 
 export const settingsApi = {
-  get: () => request<SiteSettings>("/settings"),
+  get: () => request<SiteSettings>("/settings").then(withDefaults),
   save: (data: SiteSettings) =>
     write(SETTINGS, () => request<{ message: string; settings: SiteSettings }>("/settings", { method: "PUT", body: data })),
   /** convert an image to an SVG logo without applying it */
@@ -228,13 +237,16 @@ export const settingsApi = {
 
 export interface UploadResponse {
   message: string;
-  /** an AVIF URL: Vercel Blob in production, /api/images/... in development */
+  /** an AVIF (rarely WebP) URL: Vercel Blob in production, /api/images/... in development */
   url: string;
   bytes: number;
+  format: "AVIF" | "WebP";
+  /** the source was under 1000px, so the product page's zoom will look soft */
+  lowResolution: boolean;
   source: { format: string; width: number; height: number; bytes: number };
 }
 
-/** POST /api/uploads - any supported image in, AVIF out. */
+/** POST /api/uploads - any supported image in, AVIF (or WebP) out. */
 export function uploadImage(file: Blob, name: string): Promise<UploadResponse> {
   return local<UploadResponse>("/uploads", { method: "POST", body: logoForm(file, name) }); // browser sets the multipart boundary
 }

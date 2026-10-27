@@ -6,9 +6,17 @@ import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { buttonVariants, cx, getButtonClasses } from "@/lib/classes";
 import { toast } from "@/lib/toast";
-import type { Product } from "@/lib/types";
+import type { CartItem, Product } from "@/lib/types";
+import { hasVariants } from "@/lib/variants";
 
-type Buyable = Pick<Product, "product_id" | "product_name" | "price" | "stock_quantity" | "is_active">;
+/**
+ * What can go in the cart: a product, or - with variant_id and its label - one of its variants,
+ * carrying that variant's price and stock. A product with variants but no variant picked (a
+ * catalogue card) gets a link to its page to choose one instead.
+ */
+export type Buyable = Pick<Product, "product_id" | "product_name" | "price" | "stock_quantity" | "is_active"> &
+  Pick<CartItem, "variant_id" | "variant_label"> &
+  Partial<Pick<Product, "option_groups">>;
 
 export default function AddToCartButton({
   product,
@@ -21,7 +29,7 @@ export default function AddToCartButton({
   className?: string;
   onAdded?: () => void;
 }) {
-  const { isLoggedIn, isReady } = useAuth();
+  const { isLoggedIn, isReady, can } = useAuth();
   const { addToCart, quantityOf } = useCart();
   const pathname = usePathname();
 
@@ -47,7 +55,28 @@ export default function AddToCartButton({
     );
   }
 
-  const inCart = quantityOf(product.product_id);
+  // Staff run the shop; only customers buy (orders:place - the API refuses the rest too).
+  if (!can("orders:place")) {
+    return (
+      <p className={cx("self-center font-mono text-xs text-faint", className)} data-testid="staff-no-order">
+        Staff accounts can&apos;t place orders
+      </p>
+    );
+  }
+
+  if (hasVariants(product) && !product.variant_id) {
+    return (
+      <Link
+        href={`/products/${product.product_id}`}
+        className={cx(buttonVariants.secondary, "px-4", className)}
+        data-testid="choose-options"
+      >
+        Choose options
+      </Link>
+    );
+  }
+
+  const inCart = quantityOf(product.product_id, product.variant_id);
   const remaining = product.stock_quantity - inCart;
   const canBuy = product.is_active && remaining > 0;
 
@@ -68,7 +97,8 @@ export default function AddToCartButton({
       onClick={() => {
         const qty = Math.min(quantity, remaining);
         addToCart(product, qty);
-        toast.success(`${qty} × ${product.product_name} added to cart`);
+        const name = product.variant_label ? `${product.product_name} (${product.variant_label})` : product.product_name;
+        toast.success(`${qty} × ${name} added to cart`);
         onAdded?.();
       }}
     >

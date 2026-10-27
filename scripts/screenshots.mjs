@@ -19,7 +19,7 @@ import sharp from "sharp";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "docs", "screenshots");
 const arg = (k, d) => process.argv.find((a) => a.startsWith(`--${k}=`))?.split("=")[1] ?? d;
-const BASE = arg("base", "http://localhost:8100");
+const BASE = arg("base", "http://localhost:9000");
 const STATE = arg("state", "pages");
 const ONLY = arg("only")?.split(",");
 
@@ -42,6 +42,8 @@ const CART = [
   { product_id: 12, product_name: "MSI GeForce RTX 5070 12G Gaming Trio OC", price: 13450000, quantity: 1, stock_quantity: 6 },
   { product_id: 3, product_name: "AMD Ryzen 7 9850X3D", price: 9650000, quantity: 1, stock_quantity: 8 },
   { product_id: 8, product_name: "Corsair Dominator Titanium RGB DDR5 32GB", price: 13550000, quantity: 1, stock_quantity: 10 },
+  // a product with variants: the cart line carries which one
+  { product_id: 9, product_name: "Samsung 9100 Pro NVMe", variant_id: 2, variant_label: "2TB", price: 5450000, quantity: 1, stock_quantity: 18 },
 ];
 const BUILD = { cpu: 3, motherboard: 5, ram: 8, storage: 22, gpu: 12, psu: 14, cooler: 21 };
 
@@ -52,6 +54,7 @@ const PAGES = [
   ["products-search", "/products?search=nvidia", null, ["desktop"]],
   ["products-category", "/products?category_id=2", null, ["desktop"]],
   ["product-detail", "/products/12", CUSTOMER, ["desktop", "mobile"]],
+  ["product-variants", "/products/9", CUSTOMER, ["desktop"]],
   ["categories", "/categories", null, ["desktop"]],
   ["about", "/about", null, ["desktop", "mobile"]],
   ["checkpoint-1-static", "/checkpoint-1/index.html", null, ["desktop", "mobile"]],
@@ -66,6 +69,7 @@ const PAGES = [
   ["dashboard-light", "/dashboard", SUPERADMIN, ["desktop"], "light"],
   ["dashboard-categories", "/dashboard/categories", ADMIN, ["desktop"]],
   ["dashboard-orders", "/dashboard/orders", ADMIN, ["desktop"]],
+  ["dashboard-labels", "/dashboard/orders/labels?ids=4,3", ADMIN, ["desktop"]],
   ["dashboard-users", "/dashboard/users", SUPERADMIN, ["desktop"]],
   ["dashboard-settings", "/dashboard/settings", SUPERADMIN, ["desktop"]],
 ];

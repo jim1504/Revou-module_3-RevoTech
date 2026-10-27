@@ -13,8 +13,8 @@ Live search · cart and checkout · an admin dashboard · a build planner that c
 [![Live demo](https://img.shields.io/badge/LIVE_DEMO-ONLINE-22d3ee?style=for-the-badge&logo=vercel&logoColor=white&labelColor=060914)](https://revotech-m3.vercel.app/)
 [![API health](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Frevotech-m2.vercel.app%2Fhealth&query=%24.database&label=API%20%26%20DATABASE&style=for-the-badge&logo=flask&logoColor=white&color=e879f9&labelColor=060914)](https://revotech-m2.vercel.app/health)
 [![Swagger](https://img.shields.io/badge/API_DOCS-SWAGGER-e879f9?style=for-the-badge&logo=swagger&logoColor=white&labelColor=060914)](https://revotech-m2.vercel.app/apidocs)
-[![Playwright](https://img.shields.io/badge/E2E-331_PASSED-a3e635?style=for-the-badge&logo=playwright&logoColor=white&labelColor=060914)](#-run-the-tests)
-[![pytest](https://img.shields.io/badge/PYTEST-83_PASSED-a3e635?style=for-the-badge&logo=pytest&logoColor=white&labelColor=060914)](https://github.com/jim1504/Revou-revoshop-jim1504)
+[![Playwright](https://img.shields.io/badge/E2E-375_PASSED-a3e635?style=for-the-badge&logo=playwright&logoColor=white&labelColor=060914)](#-run-the-tests)
+[![pytest](https://img.shields.io/badge/PYTEST-97_PASSED-a3e635?style=for-the-badge&logo=pytest&logoColor=white&labelColor=060914)](https://github.com/jim1504/Revou-revoshop-jim1504)
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.4-e6edf7?style=flat-square&logo=nextdotjs&logoColor=white&labelColor=0d1425)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19.3-61dafb?style=flat-square&logo=react&logoColor=61dafb&labelColor=0d1425)](https://react.dev)
@@ -37,7 +37,7 @@ Live search · cart and checkout · an admin dashboard · a build planner that c
     <td align="center" width="120"><h2>23</h2><sub>PARTS IN STOCK</sub></td>
     <td align="center" width="120"><h2>6</h2><sub>CATEGORIES</sub></td>
     <td align="center" width="120"><h2>3</h2><sub>ROLES</sub></td>
-    <td align="center" width="120"><h2>331</h2><sub>E2E RUNS</sub></td>
+    <td align="center" width="120"><h2>375</h2><sub>E2E RUNS</sub></td>
     <td align="center" width="120"><h2>4</h2><sub>BROWSERS</sub></td>
     <td align="center" width="120"><h2>4K</h2><sub>READY</sub></td>
   </tr>
@@ -77,7 +77,7 @@ cooling, and peripherals.
 
 💻 **Source:** [jim1504/Revou-module_3-RevoTech](https://github.com/jim1504/Revou-module_3-RevoTech)
 
-🧪 **Playwright:** 83 tests × 4 browsers, run locally ([how](#-run-the-tests))
+🧪 **Playwright:** 94 tests × 4 browsers, run locally ([how](#-run-the-tests))
 
 🎮 **Demo accounts:** [in Quick start](#-run-it-locally)
 
@@ -96,7 +96,7 @@ cooling, and peripherals.
 
 💻 **Source:** [jim1504/Revou-revoshop-jim1504](https://github.com/jim1504/Revou-revoshop-jim1504)
 
-🧪 **pytest:** 83 tests · **Postman:** collections in `postman/` · **Locust:** `locustfile.py`
+🧪 **pytest:** 97 tests · **Postman:** collections in `postman/` · **Locust:** `locustfile.py`
 
 </td>
 </tr>
@@ -109,8 +109,8 @@ cooling, and peripherals.
 | | Who | What they get |
 |:---:|---|---|
 | 🛒 | **Shoppers** | Browse, search by model number, filter by category, and plan a whole build |
-| 👤 | **Customers** (signed in) | A cart that survives refreshes, checkout, and order tracking |
-| 🛠️ | **Admins** | Product and category management, plus revenue, stock and order status at a glance |
+| 👤 | **Customers** (signed in) | A cart that survives refreshes, checkout, and order tracking with the courier's resi |
+| 🛠️ | **Admins** | Product and category management, order handling with printable shipping labels, plus revenue, stock and order status at a glance. Staff run the shop; they don't shop in it |
 
 The design direction is **neon cyber-grid**: a deep navy base, cyan and magenta accents, a drifting grid, glowing
 borders and monospace numerals.
@@ -120,15 +120,16 @@ borders and monospace numerals.
 | | Area | What's there |
 |:---:|---|---|
 | 🧭 | **Catalogue** | Home with a hero slider and featured parts · `/products` with live search, `?search=` and `?category_id=` URLs · product detail with an image gallery (hover zooms 2.5× into the full-resolution photo), key features, a stock meter, a link to the manufacturer's page, a credited overview, the full spec table and related parts · `/categories` |
-| 🛒 | **Cart & checkout** | Add with a quantity; a cart table with per-row quantity and remove; totals; checkout disabled when the cart is empty; `POST /orders`; order history and detail |
+| 🧩 | **Variants** | One product in several capacities or colours (Samsung 9100 Pro 1TB–8TB, G502 X Black/White), each with its own price, stock and photo: a chip picker on the product page, "from Rp …" on cards, and the variant carried through cart, checkout and the order |
+| 🛒 | **Cart & checkout** | Customers only. Add with a quantity; a cart table with per-row quantity and remove; totals; checkout disabled when the cart is empty; recipient name and courier phone; `POST /orders`; order history and detail |
 | 🔑 | **Accounts** | Register (4 validation rules), log in, session restored on refresh, redirects by role, and an account page for your own profile and password |
 | 🛡️ | **Roles** | Three: superadmin, admin and customer. Checked in the UI *and* on every write endpoint ([details](#-roles-and-permissions)) |
-| 🛠️ | **Admin** | Product CRUD in modals (official link; overview; spec tables fetched from the official page or pasted from the browser; up to 12 images, every upload converted to AVIF) · category CRUD with a deletion guard · order handling (status pipeline, cancel/reopen with restock, shipping address) · stats HUD · **edit in place** from an admin bar on the homepage, the About page and every product page |
+| 🛠️ | **Admin** | Product CRUD in modals (official link; overview; spec tables fetched from the official page or pasted from the browser; up to 12 images, every upload converted to AVIF) · category CRUD with a deletion guard · order handling (status pipeline, cancel/reopen with restock, shipping address, courier + resi) · **A6 shipping labels** with a Code 128 barcode, one or in bulk · stats HUD · **edit in place** from an admin bar on the homepage, the About page and every product page |
 | 🌗 | **Admin area** | Full width, with the dashboard tabs in a **vertical sidebar** (a scrolling row on phones), no storefront footer, and a **dark/light theme** switch for staff |
 | 🖥️ | **Screens** | From 390 px phones up to **4K monitors**: above 1920 px the whole layout scales with the window, so on a 4K screen it fills the width instead of sitting in a narrow strip |
 | ✨ | **Extras** | A card-to-detail **view transition**, a **Ctrl/⌘ K command palette**, and a **build planner** with compatibility checks |
 | 🐍 | **Backend** | The Module 2 **Flask API** on PostgreSQL (Supabase): JWT sign-in, permission checks on every write, stock that moves with orders, page content, settings and the logo. Proxied through `/api`, so the browser never calls another origin |
-| 🧪 | **Quality** | 83 Playwright tests × 4 browsers, end to end against a real Flask API (plus 83 `pytest` tests in the backend), toasts for every write, and skeleton loaders and error boundaries on every data route |
+| 🧪 | **Quality** | 94 Playwright tests × 4 browsers, end to end against a real Flask API (plus 97 `pytest` tests in the backend), toasts for every write, and skeleton loaders and error boundaries on every data route |
 
 ## 🧬 Tech stack
 
@@ -250,7 +251,7 @@ waitress-serve --port=5000 app:app
 ```bash
 npm install
 cp .env.example .env.local      # BACKEND_URL=http://localhost:5000 is the default
-npm run dev                     # → http://localhost:8100
+npm run dev                     # → http://localhost:9000
 ```
 
 `npm run dev` first copies the AVIF images from `assets/` into `public/` (`predev`).
@@ -299,7 +300,7 @@ npx playwright show-report          # HTML report
 ```
 
 ```text
-  ✓ chromium   ✓ firefox   ✓ webkit   ✓ edge          331 passed · 1 skipped (Firefox synthetic paste)
+  ✓ chromium   ✓ firefox   ✓ webkit   ✓ edge          375 passed · 1 skipped (Firefox synthetic paste)
 ```
 
 Locally the suite runs against **its own Flask API and database**, so it never touches your development data.
@@ -319,12 +320,12 @@ mocked):
 PLAYWRIGHT_BASE_URL=https://revotech-m3.vercel.app npx playwright test
 ```
 
-The API's own rules are unit-tested in the backend repo (`pytest`, 83 tests): every permission, stock moving with
+The API's own rules are unit-tested in the backend repo (`pytest`, 97 tests): every permission, stock moving with
 orders, the profile and role rules, and content, settings and logo validation. This suite tests the storefront end to
 end on top of them.
 
 <details>
-<summary><b>🔍 What each spec covers (15 specs + global setup)</b></summary>
+<summary><b>🔍 What each spec covers (17 specs + global setup)</b></summary>
 <br/>
 
 | Spec | Covers |
@@ -338,8 +339,10 @@ end on top of them.
 | `settings.spec.ts` | Settings validation; the logo served as locked-down SVG in full and square variants; an uploaded PNG traced to SVG paths in its real colours; nothing from an uploaded SVG (scripts, handlers) reaches the output; non-images rejected; renaming the shop and switching to WITA / 12-hour updates the title, header and order dates; a new logo changes the favicon |
 | `promo.spec.ts` | The new-arrivals pop-up shows once, on the first page a visitor opens; it leads with the iCUE LINK TITAN II and stays away after being clicked through, closed with Esc, or on sign-in |
 | `dashboard.spec.ts` | Create → success toast and new row → edit the price → delete with confirmation; validation; the 409 delete guard; a product that is only in past orders is withdrawn from sale instead of deleted |
-| `media.spec.ts` | Hover zoom follows the pointer and uses the full-resolution image; uploads a product drops are deleted (a shared one only when the last product lets go of it, seeded photos never); official link and credited overview; the summary fetcher refuses private addresses; images hosted elsewhere are rejected; uploads come back as AVIF; upload → reorder → save → gallery on the product page (the upload specs run locally only) |
-| `rbac.spec.ts` | Through the rewrite and this app's own routes: 401 without a token, and 403 naming the permission for a customer on every admin-only endpoint (the API's and this app's); an admin may edit the catalogue but not settings or users; orders are private; a customer edits only their own profile, can't grant themselves a role, and needs their current password to change it; a superadmin resets a password without it and can't change their own role; each role's dashboard tabs; the account page end to end |
+| `media.spec.ts` | Hover zoom follows the pointer and uses the full-resolution image; uploads a product drops are deleted (a shared one only when the last product lets go of it, seeded photos never); official link and credited overview; the summary fetcher refuses private addresses; images hosted elsewhere are rejected; uploads come back as AVIF; upload → reorder → save → gallery on the product page (the upload specs run locally only); a transparent WebP converts too, flagged as low resolution under 1000 px |
+| `variants.spec.ts` | Cards show "from" and *Choose options*; the picker sets price and stock, a sold-out capacity can't be bought; 1TB and 2TB are two cart lines, kept through checkout into the order, each taking its own stock; the admin editor creates a product with a variant per capacity (a missing price caught first, price and stock derived) |
+| `labels.spec.ts` | A label per paid order with recipient, sender (shop address), contents with variants, courier and resi, barcode and handling marks; pending orders skipped; print mode hides everything but the labels; paid orders ticked and printed together; *Mark shipped* needs the courier and resi, which the customer's order page then shows |
+| `rbac.spec.ts` | Through the rewrite and this app's own routes: 401 without a token, and 403 naming the permission for a customer on every admin-only endpoint (the API's and this app's); an admin may edit the catalogue but not settings or users; orders are private; a customer edits only their own profile, can't grant themselves a role, and needs their current password to change it; a superadmin resets a password without it and can't change their own role; each role's dashboard tabs; the account page end to end; only customers place orders: staff get 403 `orders:place`, see no add-to-cart or cart, and `/cart`, `/checkout` and `/orders` send them to the dashboard |
 | `admin.spec.ts` | Customers see Orders and no admin bars, admins see Dashboard instead; editing a product from its page, the homepage (slide, heading, featured pick, validation) and the About page, each surviving a fresh load; content validated by the API; the `PUT /orders` contract; mark paid → cancel (restocks) → reopen → change the address |
 | `specs.spec.ts` | The grouped spec table with its source and "Show all" (NVIDIA's RTX 5060 column, not the Ti's); pasted HTML → rows; the spec fetcher refuses private addresses; invalid rows are rejected; paste → edit → save → product page; "Label: value" text |
 | `layout.spec.ts` | The root font size at 1440, 1920, 2560 and 3840 px, and the page column growing with it; the dashboard at full width with stacked sidebar tabs and no footer (the storefront keeps its footer); tabs in a row on a phone with no sideways scroll; the light theme switching, surviving a reload from the first paint, staying off the storefront, and never applying to a customer |
@@ -397,7 +400,7 @@ deleted (see *Uploads and storage clean-up* under [Deep dives](#-deep-dives)).
 | `.env.local` | ❌ | Your real values. Locally the defaults work: `BACKEND_URL=http://localhost:5000`, `NEXT_PUBLIC_API_BASE_URL=/api`, `API_SECRET_KEY=…`. Add `BLOB_READ_WRITE_TOKEN` to upload to Blob. |
 
 Everything else has a default in code: the API address (`http://localhost:5000`), the browser's API base (`/api`),
-the port (8100, passed by the npm scripts), and the Playwright base URL (`http://localhost:8100`; override it with
+the port (9000, passed by the npm scripts), and the Playwright base URL (`http://localhost:9000`; override it with
 `PLAYWRIGHT_BASE_URL`).
 
 ---
@@ -582,6 +585,7 @@ wraps the whole dashboard. Each dashboard page adds the one permission it needs 
 | | |
 |---|---|
 | ![Build planner](docs/screenshots/build-desktop.avif) | ![Command palette](docs/screenshots/command-palette-desktop.avif) |
+| ![Product variants: the capacity picker](docs/screenshots/product-variants-desktop.avif) | ![Shipping labels, A6 with barcode](docs/screenshots/dashboard-labels-desktop.avif) |
 | ![Dashboard, light theme](docs/screenshots/dashboard-light-desktop.avif) | ![Dashboard on a phone](docs/screenshots/dashboard-mobile.avif) |
 
 ![Home page at 2560 px: a 4K monitor at 150 % scaling](docs/screenshots/home-wide.avif)
@@ -594,7 +598,7 @@ permission between roles is a one-line change in each repo.
 
 | | 👑 Superadmin | 🛠️ Admin | 🛒 Customer |
 |---|:---:|:---:|:---:|
-| Shop, cart, checkout, own orders | ✅ | ✅ | ✅ |
+| Cart, checkout, own orders (`orders:place`) | — | — | ✅ |
 | Own profile, address and password (`/account`) | ✅ | ✅ | ✅ |
 | Products & stock, categories, orders (`products:write`, `categories:write`, `orders:manage`) | ✅ | ✅ | — |
 | Homepage and About content (`content:write`) | ✅ | ✅ | — |
@@ -703,7 +707,8 @@ Product images © their respective manufacturers; used here for a non-commercial
 | Shop name, tagline | The header and footer wordmark (the last word, or the part after the last capital, in cyan), browser-tab titles, the pop-up |
 | Logo | The header and footer, and the browser-tab icon (a square variant) |
 | Time zone (WIB, WITA, WIT, Singapore, UTC), 12/24-hour clock, date style | Every order date and time, with the zone shown (`18 Sep 2026, 15:55 WIB`); a live "now in the store" preview |
-| Support email and phone | The footer, as `mailto:` / `tel:` links |
+| Support email and phone | The footer, as `mailto:` / `tel:` links; the phone is also the sender's on shipping labels |
+| Shop address | The sender address on shipping labels |
 
 The root layout reads the settings once per render through a cached fetch tagged `settings`, so pages stay static.
 Saving expires the tag, and every page picks up the change.
@@ -768,14 +773,32 @@ stays static: the pages' fetches are tagged, and after each save the browser ask
 it rebuilds. Product, category and order writes do the same for the `catalog` tag, which is why a price change, or
 the restock from a cancelled order, shows on the product page at once.
 
-**Orders.** Admins don't get the customer *Orders* link (their own purchases are still at `/orders`, with a pointer to
-the dashboard). **Dashboard → Orders** is where orders are handled:
+**Orders.** Only customers place orders (`orders:place`): admins and superadmins see no add-to-cart, no cart and
+no *Orders* link, and the API refuses their `POST /orders` with a 403. **Dashboard → Orders** is where they handle
+them:
 
-- each row has a one-click next step: *Mark paid*, *Mark shipped*, *Mark delivered*;
-- *Manage* opens the order: its lines and total; the status pipeline (any step can be picked, as in Flask); *Cancel
-  order* (after a confirmation; its items go back into stock) or *Reopen as pending* (refused if the stock has run
-  out in the meantime); and the shipping address;
+- each row has a one-click next step: *Mark paid*, *Mark shipped*, *Mark delivered*. *Mark shipped* opens the
+  order, because shipping needs the courier (JNE, J&T Express, SiCepat…) and its tracking number (resi); the
+  customer's order page then shows "Shipped with JNE · resi …";
+- *Manage* opens the order: its lines (with variants) and total; the status pipeline (any step can be picked, as in
+  Flask); *Cancel order* (after a confirmation; its items go back into stock) or *Reopen as pending* (refused if
+  the stock has run out in the meantime); the courier and resi; and the shipping address;
 - the status filters show a count for each status.
+
+**Shipping labels.** A paid order has a *Print label* button, and paid orders can be ticked in the list and printed
+together (`/dashboard/orders/labels?ids=…`). Each label is an A6 sticker (100 × 150 mm, the size thermal label
+printers and Indonesian couriers use), one per page:
+
+- the store logo and name, and the order number as text and as a **Code 128 barcode** (drawn by
+  [bwip-js](https://github.com/metafloor/bwip-js), loaded only on that page);
+- **To**: the recipient's name, phone and address, as entered at checkout; **From**: the shop name, phone and the
+  *Shop address* from Settings;
+- the courier and resi once known, and the contents with quantities and variants;
+- the standard ISO 780 handling marks drawn as black SVG (Fragile, Keep dry, This way up) with Indonesian captions,
+  and "JANGAN DIBANTING · Electronic components".
+
+Printing uses a CSS named page (`@page shipping-label { size: 100mm 150mm; margin: 0 }`), so only the labels take that
+size; the site header, sidebar and toolbar are left out, and the label is black on white whatever the theme.
 
 </details>
 
@@ -825,10 +848,17 @@ Whatever you upload (JPG, PNG, WebP, GIF, TIFF or AVIF), the server (`lib/server
 
 1. checks the file's real format from its contents, not its name, and rejects anything else;
 2. applies the EXIF rotation, and replaces a white studio background with the site's panel colour;
-3. fits the image on a 1600 × 1600 square and saves AVIF at 1600, 800 and 400 px, like the seeded photos.
+3. fits the image on a 1600 × 1600 square and saves AVIF at 1600, 800 and 400 px, like the seeded photos. If the
+   AVIF encoder fails on an image it could read, the same three sizes are saved as WebP instead - the raw upload is
+   never stored.
 
-The status line under the grid shows the result, e.g. `27 KB JPG → 19 KB AVIF`. Files over 4 MB are scaled down in
-the browser first, because Vercel refuses request bodies over 4.5 MB.
+The status line under the grid shows the result, e.g. `27 KB JPG → 19 KB AVIF`, and warns when the source is under
+1000 px (it is enlarged into the 1600 px tile, so the zoom will look soft). Files over 4 MB are scaled down in the
+browser first, because Vercel refuses request bodies over 4.5 MB.
+
+A failure says which step failed. "Could not be converted" is about the image; "converted but couldn't be saved"
+(HTTP 503) is about storage, with the cause in the server log. On Vercel without `BLOB_READ_WRITE_TOKEN` the upload
+stops before converting, with "Image storage isn't set up: connect a Vercel Blob store to this project".
 
 **Where uploads are stored.** With `BLOB_READ_WRITE_TOKEN` set (production), the three AVIFs go to Vercel Blob as
 `uploads/<id>.avif`, `@800` and `@400`, served from its CDN with a one-year cache. The names are random and never

@@ -18,7 +18,9 @@ const VARIANTS: { match: RegExp; widths: number[]; master: number }[] = [
 
 export default function imageLoader({ src, width }: ImageLoaderProps): string {
   const rule = VARIANTS.find((v) => v.match.test(src));
-  if (!rule || !src.endsWith(".avif") || src.includes("@")) return src;
+  // .webp: an upload the AVIF encoder couldn't handle, stored as WebP in the same three sizes
+  const ext = /\.(avif|webp)$/.exec(src)?.[1];
+  if (!rule || !ext || src.includes("@")) return src;
   const pick = rule.widths.find((w) => w >= width) ?? rule.master;
-  return pick === rule.master ? src : `${src.slice(0, -".avif".length)}@${pick}.avif`;
+  return pick === rule.master ? src : `${src.slice(0, -(ext.length + 1))}@${pick}.${ext}`;
 }

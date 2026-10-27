@@ -5,10 +5,11 @@ import { mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises"
 import { join } from "node:path";
 import { del, list, put } from "@vercel/blob";
 import sharp from "sharp";
-import type { Metadata } from "sharp";
+import type { Metadata, Sharp } from "sharp";
 
 /**
- * Product image uploads. Whatever arrives - JPG, PNG, WebP, GIF, TIFF, AVIF - leaves as AVIF:
+ * Product image uploads. Whatever arrives - JPG, PNG, WebP, GIF, TIFF, AVIF - leaves as AVIF
+ * (or WebP, in the rare case the AVIF encoder fails on an image sharp can read):
  *
  *   <id>.avif       1600px square tile   (the master)
  *   <id>@800.avif    800px
@@ -29,6 +30,8 @@ import type { Metadata } from "sharp";
  */
 
 export class UploadError extends Error {}
+/** The image converted fine but couldn't be stored - a setup or storage problem, not the file's fault. */
+export class StorageError extends UploadError {}
 
 const TILE = 1600;
 const INNER = 1360;
@@ -49,11 +52,17 @@ const inDir = (name: string) => join(/*turbopackIgnore: true*/ DIR, name);
 const blobStorage = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 /** a year: file names are random and never reused, so the bytes behind a URL never change */
 const CACHE_SECONDS = 31_536_000;
-const FILE_NAME = /^[a-f0-9]{16}(?:@(?:400|800))?\.avif$/;
+const FILE_NAME = /^[a-f0-9]{16}(?:@(?:400|800))?\.(?:avif|webp)$/;
+/** Below this on the shorter side, the 1600px master is an enlargement - the zoom will look soft. */
+const SHARP_SOURCE = 1000;
 
 export interface UploadResult {
   url: string;
   bytes: number;
+  /** what was stored: AVIF normally, WebP when AVIF encoding failed */
+  format: "AVIF" | "WebP";
+  /** the source is small enough that the product page's zoom will look soft */
+  lowResolution: boolean;
   source: { format: string; width: number; height: number; bytes: number };
 }
 
@@ -83,6 +92,11 @@ async function keyOutWhite(input: Buffer): Promise<Buffer> {
 
 export async function processUpload(file: Buffer): Promise<UploadResult> {
   if (file.byteLength > MAX_UPLOAD_BYTES) throw new UploadError(`Images must be ${MAX_UPLOAD_BYTES / 1024 / 1024} MB or smaller.`);
+  // On Vercel the local folder is read-only, so without a Blob store nothing can be saved. Say so
+  // before converting, rather than failing at the end with a message that blames the image.
+  if (process.env.VERCEL && !blobStorage()) {
+    throw new StorageError("Image storage isn't set up: connect a Vercel Blob store to this project (Storage → Blob), then redeploy.");
+  }
 
   let meta: Metadata;
   try {
@@ -98,6 +112,9 @@ export async function processUpload(file: Buffer): Promise<UploadResult> {
   if (!ACCEPTED[format]) throw new UploadError(`${format.toUpperCase() || "That"} files aren't supported. Use JPG, PNG, WebP, GIF, TIFF or AVIF.`);
   if ((meta.width ?? 0) < 200 || (meta.height ?? 0) < 200) throw new UploadError("Images must be at least 200 × 200 pixels.");
 
+  // 1. convert - a failure here really is about the image
+  let files: [string, Buffer][];
+  let stored: UploadResult["format"];
   try {
     // .rotate() with no argument applies the EXIF orientation, so phone photos come out upright
     const upright = await sharp(file, { limitInputPixels: MAX_PIXELS }).rotate().toBuffer();
@@ -106,35 +123,59 @@ export async function processUpload(file: Buffer): Promise<UploadResult> {
       .trim({ threshold: 12 })
       .resize(INNER, INNER, { fit: "inside", background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .toBuffer();
-    const master = await sharp({ create: { width: TILE, height: TILE, channels: 4, background: SURFACE } })
+    const tile = await sharp({ create: { width: TILE, height: TILE, channels: 4, background: SURFACE } })
       .composite([{ input: product, gravity: "center" }])
-      .avif({ quality: 58, effort: 4 })
+      .png()
       .toBuffer();
 
     const id = randomBytes(8).toString("hex");
-    const files: [string, Buffer][] = [[`${id}.avif`, master]];
-    for (const w of VARIANTS) files.push([`${id}@${w}.avif`, await sharp(master).resize(w, w).avif({ quality: 58, effort: 4 }).toBuffer()]);
-    const url = await save(files);
-
-    return {
-      url,
-      bytes: master.byteLength,
-      source: { format: ACCEPTED[format], width: meta.width ?? 0, height: meta.height ?? 0, bytes: file.byteLength },
-    };
+    const sizes = async (encode: (img: Sharp) => Sharp, ext: string): Promise<[string, Buffer][]> => [
+      [`${id}.${ext}`, await encode(sharp(tile)).toBuffer()],
+      ...(await Promise.all(VARIANTS.map(async (w): Promise<[string, Buffer]> => [`${id}@${w}.${ext}`, await encode(sharp(tile).resize(w, w)).toBuffer()]))),
+    ];
+    try {
+      files = await sizes((img) => img.avif({ quality: 58, effort: 4 }), "avif");
+      stored = "AVIF";
+    } catch (e) {
+      // the AVIF encoder failed on this image: WebP in the same three sizes - never the raw upload
+      console.warn("uploads: AVIF encoding failed, storing WebP instead -", e);
+      files = await sizes((img) => img.webp({ quality: 82, effort: 5 }), "webp");
+      stored = "WebP";
+    }
   } catch (e) {
-    if (e instanceof UploadError) throw e;
+    console.error("uploads: conversion failed -", e);
     throw new UploadError("The image could not be converted. Try exporting it again as JPG or PNG.");
   }
+
+  // 2. store - a failure here is about storage (a missing or wrong Blob token, a full disk)
+  let url: string;
+  try {
+    url = await save(files);
+  } catch (e) {
+    console.error("uploads: storing failed -", e);
+    throw new StorageError("The image was converted but couldn't be saved to storage. Try again; if it keeps failing, check the Blob store connection.");
+  }
+
+  return {
+    url,
+    bytes: files[0][1].byteLength,
+    format: stored,
+    lowResolution: Math.min(meta.width ?? 0, meta.height ?? 0) < SHARP_SOURCE,
+    source: { format: ACCEPTED[format], width: meta.width ?? 0, height: meta.height ?? 0, bytes: file.byteLength },
+  };
 }
 
 /* ------------------------------------------------------------------ storage */
+
+/** image/avif or image/webp, from a stored file's name. */
+export const contentTypeOf = (name: string) => (name.endsWith(".webp") ? "image/webp" : "image/avif");
 
 /** Stores the three sizes and returns the master's URL - the one a product's `images` holds. */
 async function save(files: [string, Buffer][]): Promise<string> {
   if (blobStorage()) {
     const stored = await Promise.all(
       files.map(([name, bytes]) =>
-        put(`uploads/${name}`, bytes, { access: "public", contentType: "image/avif", addRandomSuffix: false, cacheControlMaxAge: CACHE_SECONDS })
+        put(`uploads/${name}`, bytes, { access: "public", contentType: contentTypeOf(name), addRandomSuffix: false, cacheControlMaxAge: CACHE_SECONDS })
       )
     );
     return stored[0].url;
@@ -158,13 +199,13 @@ async function save(files: [string, Buffer][]): Promise<string> {
  */
 const ORPHAN_GRACE_MS = Number(process.env.UPLOAD_ORPHAN_GRACE_MINUTES ?? 60) * 60_000;
 const SWEEP_EVERY_MS = 10 * 60_000;
-const UPLOAD_URL = /^(?:\/api\/images\/|https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\/uploads\/)([a-f0-9]{16})\.avif$/;
+const UPLOAD_URL = /^(?:\/api\/images\/|https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\/uploads\/)([a-f0-9]{16})\.(avif|webp)$/;
 
 /** True for an uploaded image's URL (either storage); false for the seeded /products/... photos. */
 export const isUpload = (url: string) => UPLOAD_URL.test(url);
 const idOf = (url: string) => UPLOAD_URL.exec(url)?.[1] ?? null;
 /** the master's URL -> the master plus its two smaller sizes */
-const sizesOf = (url: string) => [url, ...VARIANTS.map((w) => url.replace(/\.avif$/, `@${w}.avif`))];
+const sizesOf = (url: string) => [url, ...VARIANTS.map((w) => url.replace(/\.(avif|webp)$/, `@${w}.$1`))];
 
 export interface CleanupResult {
   removed: number;
@@ -180,7 +221,7 @@ export async function deleteUploads(urls: Iterable<string>): Promise<CleanupResu
     await del(targets.flatMap(sizesOf));
   } else {
     for (const url of targets) {
-      for (const name of sizesOf(`${idOf(url)}.avif`)) {
+      for (const name of sizesOf(`${idOf(url)}.${UPLOAD_URL.exec(url)?.[2] ?? "avif"}`)) {
         const path = inDir(name);
         bytes += await stat(/*turbopackIgnore: true*/ path).then((st) => st.size, () => 0);
         await rm(/*turbopackIgnore: true*/ path, { force: true });
@@ -206,7 +247,7 @@ export async function sweepUploads(inUse: Set<string>, graceMs = ORPHAN_GRACE_MS
     do {
       const page = await list({ prefix: "uploads/", cursor, limit: 1000 });
       for (const b of page.blobs) {
-        const id = /^uploads\/([a-f0-9]{16})\.avif$/.exec(b.pathname)?.[1];
+        const id = /^uploads\/([a-f0-9]{16})\.(?:avif|webp)$/.exec(b.pathname)?.[1];
         if (!id || inUseIds.has(id) || b.uploadedAt.getTime() >= cutoff) continue;
         stale.push(b.url);
         bytes += b.size;
@@ -218,7 +259,7 @@ export async function sweepUploads(inUse: Set<string>, graceMs = ORPHAN_GRACE_MS
 
   const names = await readdir(/*turbopackIgnore: true*/ DIR).catch(() => [] as string[]);
   for (const name of names) {
-    const id = /^([a-f0-9]{16})\.avif$/.exec(name)?.[1];
+    const id = /^([a-f0-9]{16})\.(?:avif|webp)$/.exec(name)?.[1];
     if (!id || inUseIds.has(id)) continue;
     const { mtimeMs } = await stat(inDir(name));
     if (mtimeMs < cutoff) stale.push(`/api/images/${name}`);

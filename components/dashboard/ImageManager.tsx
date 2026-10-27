@@ -76,7 +76,8 @@ export default function ImageManager({
         const body = await shrinkIfNeeded(file);
         const res = await uploadImage(body, file.name);
         onChange((prev) => (prev.length < MAX_IMAGES ? [...prev, res.url] : prev));
-        note(key, { status: "done", note: `${kb(file.size)} ${res.source.format} → ${kb(res.bytes)} AVIF` });
+        const soft = res.lowResolution ? ` · low resolution (${res.source.width}×${res.source.height}): the zoom will look soft` : "";
+        note(key, { status: "done", note: `${kb(file.size)} ${res.source.format} → ${kb(res.bytes)} ${res.format ?? "AVIF"}${soft}` });
       } catch (e) {
         const detail = e instanceof ApiError ? (e.body.details?.[0] ?? e.message) : describeError(e);
         note(key, { status: "error", note: detail });

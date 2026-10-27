@@ -26,7 +26,7 @@ test.describe("official page and overview", () => {
   });
 
   test("the summary fetcher refuses private and non-http addresses", async ({ request }) => {
-    for (const url of ["http://127.0.0.1:8100/", "http://localhost/", "http://192.168.1.1/", "file:///etc/passwd"]) {
+    for (const url of ["http://127.0.0.1:9000/", "http://localhost/", "http://192.168.1.1/", "file:///etc/passwd"]) {
       const res = await request.get(`/api/official-preview?url=${encodeURIComponent(url)}`);
       expect(res.status(), url).toBe(400);
       expect((await res.json()).error, url).toBeTruthy();
@@ -69,7 +69,7 @@ test.describe("product images API", () => {
   test("a product cannot point at an image hosted elsewhere", async ({ request }) => {
     const res = await request.put("/api/products/4", { data: { images: ["https://example.com/board.jpg"] } });
     expect(res.status()).toBe(400);
-    expect((await res.json()).details.join(" ")).toContain("images must be AVIF files uploaded through the storefront");
+    expect((await res.json()).details.join(" ")).toContain("images must be files uploaded through the storefront");
   });
 
   test("a product holds at most 12 images", async ({ request }) => {
@@ -101,6 +101,24 @@ test.describe("product images API", () => {
       expect(img.headers()["content-type"]).toBe("image/avif");
     }
     expect((await request.get("/api/images/..%2F..%2Fpackage.json")).status()).toBe(404);
+  });
+
+  test("a transparent WebP is converted too, and a small one is flagged as low resolution", async ({ request, baseURL }) => {
+    test.skip(!isLocal(baseURL), "uploads live on one serverless instance's disk");
+    // an 800px RGBA WebP like a manufacturer's cut-out photo: a product on a transparent background
+    const webp = await sharp({ create: { width: 800, height: 800, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+      .composite([{ input: await png("#22d3ee", 500), gravity: "center" }])
+      .webp()
+      .toBuffer();
+
+    const res = await request.post("/api/uploads", { multipart: { file: { name: "laptop.webp", mimeType: "image/webp", buffer: webp } } });
+    expect(res.status()).toBe(201);
+    const body = await res.json();
+    expect(body.source.format).toBe("WebP");
+    expect(body.format).toBe("AVIF");
+    expect(body.lowResolution).toBe(true); // under 1000px: the zoom will look soft
+    expect((await request.get(body.url)).headers()["content-type"]).toBe("image/avif");
+    await request.post("/api/uploads/release", { data: { urls: [body.url] } });
   });
 });
 

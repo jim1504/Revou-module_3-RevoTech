@@ -1,6 +1,5 @@
-import { readFileSync } from "node:fs";
 import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures";
+import { bearer, expect, test } from "./fixtures";
 import { ADMIN_STATE } from "./global-setup";
 
 test.use({ storageState: ADMIN_STATE });
@@ -95,9 +94,11 @@ test.describe("admin dashboard", () => {
     test.skip(!/localhost|127\.0\.0\.1/.test(baseURL ?? ""), "writes and reads back shared data");
     const name = `PW withdraw ${Date.now()}`;
     const { product } = await (await request.post("/api/products", { data: { product_name: name, category_id: 5, price: 1000, stock_quantity: 3 } })).json();
-    const user = JSON.parse(readFileSync("tests/.auth/user.json", "utf8"));
     const { order } = await (
-      await request.post("/api/orders", { data: { user_id: user.id, shipping_address: "Jl. Playwright No. 3, Jakarta", items: [{ product_id: product.product_id, quantity: 1 }] } })
+      await request.post("/api/orders", {
+        headers: bearer("customer"), // only customers place orders
+        data: { shipping_address: "Jl. Playwright No. 3, Jakarta", recipient_phone: "+62 812 0000 0003", items: [{ product_id: product.product_id, quantity: 1 }] },
+      })
     ).json();
     await request.put(`/api/orders/${order.order_id}`, { data: { order_status: "cancelled" } });
 

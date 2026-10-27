@@ -88,7 +88,7 @@ test.describe("settings page", () => {
       await expect(page).toHaveTitle(/^JW Tech Store — /);
       await expect(page.getByTestId("site-header").getByTestId("brand-name")).toHaveText("JW Tech Store");
       await page.goto("/dashboard/orders");
-      await expect(page.getByTestId("admin-order-row").first().locator("td").nth(2)).toContainText(/(am|pm) WITA$/);
+      await expect(page.getByTestId("admin-order-row").first().locator("td").nth(3)).toContainText(/(am|pm) WITA$/);
     } finally {
       await request.put("/api/settings", { data: before });
       await refreshPages(request, ["settings"]);

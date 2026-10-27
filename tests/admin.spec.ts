@@ -1,6 +1,5 @@
-import { readFileSync } from "node:fs";
 import type { APIRequestContext } from "@playwright/test";
-import { expect, refreshPages, test } from "./fixtures";
+import { bearer, expect, refreshPages, test } from "./fixtures";
 import { ADMIN_STATE, CUSTOMER_STATE } from "./global-setup";
 
 /**
@@ -13,11 +12,11 @@ import { ADMIN_STATE, CUSTOMER_STATE } from "./global-setup";
  */
 const isLocal = (baseURL?: string) => /localhost|127\.0\.0\.1/.test(baseURL ?? "");
 
-/** An order from the test customer, so the seeded orders are never touched. */
+/** An order from the test customer (only customers place orders), so the seeded ones are never touched. */
 async function placeOrder(request: APIRequestContext, productId: number) {
-  const user = JSON.parse(readFileSync("tests/.auth/user.json", "utf8"));
   const res = await request.post("/api/orders", {
-    data: { user_id: user.id, shipping_address: "Jl. Playwright No. 1, Jakarta", items: [{ product_id: productId, quantity: 1 }] },
+    headers: bearer("customer"),
+    data: { shipping_address: "Jl. Playwright No. 1, Jakarta", recipient_phone: "+62 812 0000 0001", items: [{ product_id: productId, quantity: 1 }] },
   });
   expect(res.status()).toBe(201);
   return (await res.json()).order as { order_id: number };
@@ -101,8 +100,8 @@ test.describe("admin editing in place", () => {
       await expect(page.getByRole("region", { name: "Fresh parts, checked sockets" }).getByRole("heading", { level: 3 })).toHaveText([
         "Corsair Dominator Titanium RGB DDR5 32GB",
         "MSI GeForce RTX 5070 12G Gaming Trio OC",
-        "SanDisk Optimus GX PRO 850X 1TB Heatsink",
-        "WD_BLACK SN850X 1TB Heatsink",
+        "SanDisk Optimus GX PRO 850X Heatsink",
+        "WD_BLACK SN850X Heatsink",
         "AMD Ryzen 7 9850X3D",
       ]);
     } finally {

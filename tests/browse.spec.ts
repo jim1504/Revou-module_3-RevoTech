@@ -36,6 +36,13 @@ test.describe("shopping journey", () => {
     await page.getByTestId("checkout-button").click();
     await expect(page).toHaveURL(/\/checkout$/);
     await page.getByTestId("shipping-address").fill("Jl. Playwright No. 1, Jakarta Selatan");
+    // the courier needs a number to call. It's pre-filled from the profile when there is one (another
+    // spec may have set it), so clear it to see the check, then enter one.
+    await expect(page.getByTestId("recipient-name")).not.toHaveValue("");
+    await page.getByTestId("recipient-phone").fill("");
+    await page.getByTestId("confirm-order").click();
+    await expect(page.getByText("Enter a phone number the courier can call.")).toBeVisible();
+    await page.getByTestId("recipient-phone").fill("+62 812 3456 7890");
     await page.getByTestId("confirm-order").click();
 
     await expect(page).toHaveURL(/\/orders$/);

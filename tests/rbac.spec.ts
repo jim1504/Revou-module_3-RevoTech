@@ -92,6 +92,33 @@ test.describe("API permissions", () => {
     expect(mine.every((o) => o.user_id === customerUser().id)).toBe(true);
     for (const ctx of [anon, customer]) await ctx.dispose();
   });
+
+  test("only customers place orders: staff are refused by the API", async ({ playwright, baseURL }) => {
+    const order = { shipping_address: "Jl. Staff No. 1", recipient_phone: "+62 812 0000 0009", items: [{ product_id: 16, quantity: 1 }] };
+    for (const role of ["admin", "superadmin"] as const) {
+      const staff = await as(playwright, baseURL!, role);
+      const res = await staff.post("/api/orders", { data: order });
+      expect(res.status(), role).toBe(403);
+      expect((await res.json()).permission).toBe("orders:place");
+      await staff.dispose();
+    }
+  });
+});
+
+test.describe("staff don't shop", () => {
+  test.use({ storageState: ADMIN_STATE });
+
+  test("no add-to-cart, no cart button, and the shopping pages send them to the dashboard", async ({ page }) => {
+    await page.goto("/products/16");
+    await expect(page.getByTestId("staff-no-order").first()).toBeVisible();
+    await expect(page.getByTestId("add-to-cart")).toHaveCount(0);
+    await expect(page.getByTestId("header-cart")).toHaveCount(0);
+
+    for (const path of ["/cart", "/checkout", "/orders"]) {
+      await page.goto(path);
+      await expect(page).toHaveURL(/\/dashboard\/orders$/);
+    }
+  });
 });
 
 test.describe("profiles and roles", () => {

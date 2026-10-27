@@ -37,7 +37,7 @@ test.describe("technical specifications", () => {
   });
 
   test("the spec fetcher refuses private addresses, and bad rows are rejected", async ({ request }) => {
-    const res = await request.get(`/api/official-specs?url=${encodeURIComponent("http://127.0.0.1:8100/")}`);
+    const res = await request.get(`/api/official-specs?url=${encodeURIComponent("http://127.0.0.1:9000/")}`);
     expect(res.status()).toBe(400);
 
     const put = await request.put("/api/products/4", { data: { specs: [{ label: "", value: "x" }] } });

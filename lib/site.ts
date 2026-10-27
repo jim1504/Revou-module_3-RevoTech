@@ -5,7 +5,7 @@
  */
 export const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:8100";
+  : "http://localhost:9000";
 
 /** The author's full portfolio, linked from /about and the footer; /portfolio redirects to it. */
 export const PORTFOLIO_URL = "https://jimwilliam.vercel.app/";

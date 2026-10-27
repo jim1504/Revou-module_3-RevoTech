@@ -19,6 +19,7 @@ next-env.d.ts
 
 # uploaded product images (local dev storage, see lib/server/uploads.ts)
 /.data/
+.offline-markdown-preview/
 
 # testing
 /coverage

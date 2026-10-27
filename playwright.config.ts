@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 // `PLAYWRIGHT_BASE_URL=https://... npx playwright test` runs the suite against production.
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:8100";
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:9000";
 const isLocal = /localhost|127\.0\.0\.1/.test(baseURL);
 // Locally the suite runs against its own Flask API and database (scripts/e2e-backend.mjs), so
 // it can reseed freely without touching your development data.

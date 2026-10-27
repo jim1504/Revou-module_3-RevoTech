@@ -9,6 +9,7 @@ const prodIds = new Set(c.products.map((x) => x.product_id));
 const userIds = new Set(c.users.map((x) => x.id));
 const slugs = new Set(c.products.map((x) => x.slug));
 const STATUSES = ["pending", "paid", "shipped", "delivered", "cancelled"];
+const variantIds = { seen: new Set(), add(id) { if (this.seen.has(id)) return false; this.seen.add(id); return true; } };
 
 if (slugs.size !== c.products.length) errors.push("duplicate slug");
 if (prodIds.size !== c.products.length) errors.push("duplicate product_id");
@@ -22,21 +23,56 @@ for (const p of c.products) {
   for (const img of p.images ?? []) {
     if (!existsSync(new URL(`../assets${img}`, import.meta.url))) errors.push(`product ${p.product_id}: missing ${img}`);
   }
+  // variants: one value per option group, unique combinations, and the product's own price and
+  // stock equal to what the API derives (lowest active variant price, total active stock)
+  const groups = p.option_groups ?? [];
+  const variants = p.variants ?? [];
+  if (groups.length && !variants.length) errors.push(`product ${p.product_id}: option groups but no variants`);
+  if (!groups.length && variants.length) errors.push(`product ${p.product_id}: variants without option groups`);
+  const combos = new Set();
+  for (const v of variants) {
+    if (!variantIds.add(v.variant_id)) errors.push(`product ${p.product_id}: duplicate variant_id ${v.variant_id}`);
+    const key = groups.map((g) => v.options[g.name]).join("|");
+    if (Object.keys(v.options).length !== groups.length || groups.some((g) => !g.values.includes(v.options[g.name]))) {
+      errors.push(`product ${p.product_id}: variant ${v.variant_id} options don't match the groups`);
+    }
+    if (combos.has(key)) errors.push(`product ${p.product_id}: combination ${key} twice`);
+    combos.add(key);
+    if (v.price < 0 || v.stock_quantity < 0) errors.push(`product ${p.product_id}: variant ${v.variant_id} negative price or stock`);
+    if (v.image && !(p.images ?? []).includes(v.image)) errors.push(`product ${p.product_id}: variant ${v.variant_id} photo is not one of its images`);
+  }
+  const active = variants.filter((v) => v.is_active);
+  if (active.length) {
+    if (p.price !== Math.min(...active.map((v) => v.price))) errors.push(`product ${p.product_id}: price should be the lowest variant price`);
+    if (p.stock_quantity !== active.reduce((n, v) => n + v.stock_quantity, 0)) errors.push(`product ${p.product_id}: stock should be the variants' total`);
+  }
 }
 
 let itemCount = 0;
 for (const o of c.orders) {
   if (!userIds.has(o.user_id)) errors.push(`order ${o.order_id}: unknown user`);
+  else if (c.users.find((u) => u.id === o.user_id).role !== "customer") errors.push(`order ${o.order_id}: only customers place orders`);
+  if (["shipped", "delivered"].includes(o.order_status) && !(o.courier && o.tracking_number)) {
+    errors.push(`order ${o.order_id}: shipped orders need a courier and tracking number`);
+  }
   if (!STATUSES.includes(o.order_status)) errors.push(`order ${o.order_id}: bad status`);
   if (o.items.length === 0) errors.push(`order ${o.order_id}: empty items`);
   const seen = new Set();
   for (const i of o.items) {
     itemCount++;
     if (!prodIds.has(i.product_id)) errors.push(`order ${o.order_id}: unknown product ${i.product_id}`);
-    if (seen.has(i.product_id)) errors.push(`order ${o.order_id}: duplicate product ${i.product_id}`);
-    seen.add(i.product_id);
+    const line = `${i.product_id}:${i.variant_id ?? ""}`;
+    if (seen.has(line)) errors.push(`order ${o.order_id}: duplicate line ${line}`);
+    seen.add(line);
     const p = c.products.find((x) => x.product_id === i.product_id);
-    if (p && p.price !== i.unit_price) errors.push(`order ${o.order_id}: unit_price ${i.unit_price} != product price ${p.price} for ${p.product_name}`);
+    if (!p) continue;
+    if (p.option_groups?.length) {
+      const v = p.variants.find((x) => x.variant_id === i.variant_id);
+      if (!v) errors.push(`order ${o.order_id}: ${p.product_name} needs a variant`);
+      else if (v.price !== i.unit_price) errors.push(`order ${o.order_id}: unit_price ${i.unit_price} != variant price ${v.price} for ${p.product_name}`);
+    } else if (p.price !== i.unit_price) {
+      errors.push(`order ${o.order_id}: unit_price ${i.unit_price} != product price ${p.price} for ${p.product_name}`);
+    }
   }
 }
 

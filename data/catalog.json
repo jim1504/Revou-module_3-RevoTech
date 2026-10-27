@@ -548,7 +548,9 @@
       ],
       "brand": "Intel",
       "socket": "LGA1851",
-      "watt": 125
+      "watt": 125,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 2,
@@ -1071,7 +1073,9 @@
       ],
       "brand": "Intel",
       "socket": "LGA1851",
-      "watt": 125
+      "watt": 125,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 3,
@@ -1362,7 +1366,9 @@
       ],
       "brand": "AMD",
       "socket": "AM5",
-      "watt": 120
+      "watt": 120,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 4,
@@ -1384,7 +1390,9 @@
       "specs": [],
       "brand": "ASUS",
       "socket": "LGA1851",
-      "watt": 0
+      "watt": 0,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 5,
@@ -1455,7 +1463,9 @@
       ],
       "brand": "MSI",
       "socket": "AM5",
-      "watt": 0
+      "watt": 0,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 6,
@@ -1477,7 +1487,9 @@
       "specs": [],
       "brand": "Gigabyte",
       "socket": "LGA1851",
-      "watt": 0
+      "watt": 0,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 7,
@@ -1576,7 +1588,9 @@
       ],
       "brand": "Corsair",
       "socket": null,
-      "watt": 10
+      "watt": 10,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 8,
@@ -1684,7 +1698,9 @@
       ],
       "brand": "Corsair",
       "socket": null,
-      "watt": 10
+      "watt": 10,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 9,
@@ -1694,10 +1710,10 @@
         "/products/samsung-9100-pro-nvme-1tb.avif"
       ],
       "kind": "ssd",
-      "product_name": "Samsung 9100 Pro NVMe 1TB",
+      "product_name": "Samsung 9100 Pro NVMe",
       "description": "pcie 5.0, baca hingga 14800 mb per detik",
       "price": 2950000,
-      "stock_quantity": 35,
+      "stock_quantity": 59,
       "is_active": true,
       "official_url": "https://www.samsung.com/us/memory-storage/nvme-ssd/9100-pro-nvme-ssd-sku-mz-vap1t0b-am/",
       "overview": "Get 9100 PRO 1TB, the fastest Gen5 NVMe SSD on the market. Blazing seq read/write speeds up to 14,800/13,400 MB/s. Perfect for AI computing, gaming, more.",
@@ -1706,7 +1722,60 @@
       "specs": [],
       "brand": "Samsung",
       "socket": null,
-      "watt": 10
+      "watt": 10,
+      "option_groups": [
+        {
+          "name": "Capacity",
+          "values": [
+            "1TB",
+            "2TB",
+            "4TB",
+            "8TB"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": 1,
+          "options": {
+            "Capacity": "1TB"
+          },
+          "price": 2950000,
+          "stock_quantity": 35,
+          "image": null,
+          "is_active": true
+        },
+        {
+          "variant_id": 2,
+          "options": {
+            "Capacity": "2TB"
+          },
+          "price": 5450000,
+          "stock_quantity": 18,
+          "image": null,
+          "is_active": true
+        },
+        {
+          "variant_id": 3,
+          "options": {
+            "Capacity": "4TB"
+          },
+          "price": 10750000,
+          "stock_quantity": 6,
+          "image": null,
+          "is_active": true
+        },
+        {
+          "variant_id": 4,
+          "options": {
+            "Capacity": "8TB"
+          },
+          "price": 21500000,
+          "stock_quantity": 0,
+          "image": null,
+          "is_active": true
+        }
+      ]
     },
     {
       "product_id": 10,
@@ -1728,7 +1797,9 @@
       "specs": [],
       "brand": "Seagate",
       "socket": null,
-      "watt": 10
+      "watt": 10,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 11,
@@ -1981,7 +2052,9 @@
       ],
       "brand": "NVIDIA",
       "socket": null,
-      "watt": 145
+      "watt": 145,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 12,
@@ -2092,7 +2165,9 @@
       ],
       "brand": "MSI",
       "socket": null,
-      "watt": 250
+      "watt": 250,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 13,
@@ -2271,7 +2346,9 @@
       ],
       "brand": "AMD",
       "socket": null,
-      "watt": 160
+      "watt": 160,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 14,
@@ -2354,7 +2431,9 @@
       ],
       "brand": "Corsair",
       "socket": null,
-      "watt": -650
+      "watt": -650,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 15,
@@ -2441,7 +2520,9 @@
       ],
       "brand": "Deepcool",
       "socket": null,
-      "watt": 5
+      "watt": 5,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 16,
@@ -2554,7 +2635,9 @@
       ],
       "brand": "Arctic",
       "socket": null,
-      "watt": 3
+      "watt": 3,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 17,
@@ -2602,7 +2685,9 @@
       ],
       "brand": "Thermal Grizzly",
       "socket": null,
-      "watt": 0
+      "watt": 0,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 18,
@@ -2615,7 +2700,7 @@
       "product_name": "Logitech G502 X Gaming Mouse",
       "description": "sensor hero 25k, switch hybrid lightforce, 13 tombol",
       "price": 950000,
-      "stock_quantity": 33,
+      "stock_quantity": 47,
       "is_active": true,
       "official_url": "https://www.logitechg.com/en-us/shop/p/g502-x-wired-lightforce",
       "overview": null,
@@ -2624,7 +2709,38 @@
       "specs": [],
       "brand": "Logitech",
       "socket": null,
-      "watt": 2
+      "watt": 2,
+      "option_groups": [
+        {
+          "name": "Color",
+          "values": [
+            "Black",
+            "White"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": 5,
+          "options": {
+            "Color": "Black"
+          },
+          "price": 950000,
+          "stock_quantity": 33,
+          "image": null,
+          "is_active": true
+        },
+        {
+          "variant_id": 6,
+          "options": {
+            "Color": "White"
+          },
+          "price": 950000,
+          "stock_quantity": 14,
+          "image": null,
+          "is_active": true
+        }
+      ]
     },
     {
       "product_id": 19,
@@ -2646,7 +2762,9 @@
       "specs": [],
       "brand": "Keychron",
       "socket": null,
-      "watt": 3
+      "watt": 3,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 20,
@@ -2929,7 +3047,9 @@
       ],
       "brand": "LG",
       "socket": null,
-      "watt": 30
+      "watt": 30,
+      "option_groups": [],
+      "variants": []
     },
     {
       "product_id": 21,
@@ -2951,7 +3071,7 @@
       "product_name": "Corsair iCUE LINK TITAN II 360 RX LCD",
       "description": "aio 360 mm, layar lcd ips 5 inci, kipas rx120 rgb, soket lga1851 dan am5",
       "price": 3950000,
-      "stock_quantity": 9,
+      "stock_quantity": 14,
       "is_active": true,
       "official_url": "https://www.corsair.com/ww/en/p/cpu-coolers/cw-9061045-ww/icue-link-titan-ii-360-rx-lcd-aio-liquid-cpu-cooler-cw-9061045-ww",
       "overview": "High-performance AIO CPU cooler with high-res 5\" LCD screen, second-generation FlowDrive pump, unified RGB fan frame, and enhanced cooling efficiency.",
@@ -3037,7 +3157,38 @@
       ],
       "brand": "Corsair",
       "socket": null,
-      "watt": 15
+      "watt": 15,
+      "option_groups": [
+        {
+          "name": "Color",
+          "values": [
+            "Black",
+            "White"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": 7,
+          "options": {
+            "Color": "Black"
+          },
+          "price": 3950000,
+          "stock_quantity": 9,
+          "image": null,
+          "is_active": true
+        },
+        {
+          "variant_id": 8,
+          "options": {
+            "Color": "White"
+          },
+          "price": 4150000,
+          "stock_quantity": 5,
+          "image": null,
+          "is_active": true
+        }
+      ]
     },
     {
       "product_id": 22,
@@ -3056,10 +3207,10 @@
         "/products/sandisk-optimus-gx-pro-850x-1tb-10.avif"
       ],
       "kind": "ssd",
-      "product_name": "SanDisk Optimus GX PRO 850X 1TB Heatsink",
+      "product_name": "SanDisk Optimus GX PRO 850X Heatsink",
       "description": "pcie 4.0, baca hingga 7300 mb per detik, heatsink terintegrasi, kompatibel ps5",
       "price": 4850000,
-      "stock_quantity": 12,
+      "stock_quantity": 23,
       "is_active": true,
       "official_url": "https://www.sandisk.com/in-id/products/ssd/internal-ssd/sandisk-optimus-gx-pro-850x-internal-nvme-ssd?sku=SDSP81100TAH-000E0",
       "overview": "Supercharge gaming and creative work with the SANDISK Optimus GX PRO 850X SSD, delivering fast PCIe 4.0 speeds, up to 8TB storage, and reliable performance.",
@@ -3129,7 +3280,49 @@
       ],
       "brand": "SanDisk",
       "socket": null,
-      "watt": 7
+      "watt": 7,
+      "option_groups": [
+        {
+          "name": "Capacity",
+          "values": [
+            "1TB",
+            "2TB",
+            "4TB"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": 9,
+          "options": {
+            "Capacity": "1TB"
+          },
+          "price": 4850000,
+          "stock_quantity": 12,
+          "image": null,
+          "is_active": true
+        },
+        {
+          "variant_id": 10,
+          "options": {
+            "Capacity": "2TB"
+          },
+          "price": 9950000,
+          "stock_quantity": 8,
+          "image": null,
+          "is_active": true
+        },
+        {
+          "variant_id": 11,
+          "options": {
+            "Capacity": "4TB"
+          },
+          "price": 19250000,
+          "stock_quantity": 3,
+          "image": null,
+          "is_active": true
+        }
+      ]
     },
     {
       "product_id": 23,
@@ -3142,10 +3335,10 @@
         "/products/wd-black-sn850x-1tb-4.avif"
       ],
       "kind": "ssd",
-      "product_name": "WD_BLACK SN850X 1TB Heatsink",
+      "product_name": "WD_BLACK SN850X Heatsink",
       "description": "pcie 4.0, baca hingga 7300 mb per detik, heatsink, kompatibel ps5",
       "price": 3450000,
-      "stock_quantity": 18,
+      "stock_quantity": 34,
       "is_active": true,
       "official_url": "https://www.sandisk.com/in-id/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd?sku=WDS100T2XHE-00BCA0",
       "overview": "Load games faster with a WD_BLACK SN850X internal NVMe SSD. Designed for PC gaming rigs and PlayStation 5 consoles, push the envelope of PCIe Gen4 technology with read speeds up to 7300MB/s.",
@@ -3215,7 +3408,60 @@
       ],
       "brand": "WD_BLACK",
       "socket": null,
-      "watt": 7
+      "watt": 7,
+      "option_groups": [
+        {
+          "name": "Capacity",
+          "values": [
+            "1TB",
+            "2TB",
+            "4TB",
+            "8TB"
+          ]
+        }
+      ],
+      "variants": [
+        {
+          "variant_id": 12,
+          "options": {
+            "Capacity": "1TB"
+          },
+          "price": 3450000,
+          "stock_quantity": 18,
+          "image": null,
+          "is_active": true
+        },
+        {
+          "variant_id": 13,
+          "options": {
+            "Capacity": "2TB"
+          },
+          "price": 6350000,
+          "stock_quantity": 10,
+          "image": null,
+          "is_active": true
+        },
+        {
+          "variant_id": 14,
+          "options": {
+            "Capacity": "4TB"
+          },
+          "price": 12450000,
+          "stock_quantity": 4,
+          "image": null,
+          "is_active": true
+        },
+        {
+          "variant_id": 15,
+          "options": {
+            "Capacity": "8TB"
+          },
+          "price": 24900000,
+          "stock_quantity": 2,
+          "image": null,
+          "is_active": true
+        }
+      ]
     }
   ],
   "users": [
@@ -3291,11 +3537,15 @@
           "quantity": 2,
           "unit_price": 1050000
         }
-      ]
+      ],
+      "recipient_name": "Siti Rahayu",
+      "recipient_phone": "+62-813-2222-0002",
+      "courier": "JNE",
+      "tracking_number": "CGK1A26071400012"
     },
     {
       "order_id": 2,
-      "user_id": 3,
+      "user_id": 4,
       "order_status": "delivered",
       "shipping_address": "Jl. Pemuda No. 33, Surabaya",
       "ordered_at": "2026-08-02T14:05:00",
@@ -3310,7 +3560,11 @@
           "quantity": 1,
           "unit_price": 1350000
         }
-      ]
+      ],
+      "recipient_name": "Dewi Lestari",
+      "recipient_phone": "+62-877-4444-0004",
+      "courier": "SiCepat",
+      "tracking_number": "004812345678"
     },
     {
       "order_id": 3,
@@ -3322,14 +3576,20 @@
         {
           "product_id": 18,
           "quantity": 1,
-          "unit_price": 950000
+          "unit_price": 950000,
+          "variant_id": 5,
+          "variant_label": "Black"
         },
         {
           "product_id": 19,
           "quantity": 1,
           "unit_price": 1850000
         }
-      ]
+      ],
+      "recipient_name": "Dewi Lestari",
+      "recipient_phone": "+62-877-4444-0004",
+      "courier": "J&T Express",
+      "tracking_number": "JP7012345678"
     },
     {
       "order_id": 4,
@@ -3351,9 +3611,15 @@
         {
           "product_id": 9,
           "quantity": 1,
-          "unit_price": 2950000
+          "unit_price": 2950000,
+          "variant_id": 1,
+          "variant_label": "1TB"
         }
-      ]
+      ],
+      "recipient_name": "Rizky Ramadhan",
+      "recipient_phone": "+62-819-5555-0005",
+      "courier": null,
+      "tracking_number": null
     },
     {
       "order_id": 5,
@@ -3372,7 +3638,11 @@
           "quantity": 1,
           "unit_price": 480000
         }
-      ]
+      ],
+      "recipient_name": "Maya Kusuma",
+      "recipient_phone": "+62-878-6666-0006",
+      "courier": null,
+      "tracking_number": null
     },
     {
       "order_id": 6,
@@ -3396,7 +3666,11 @@
           "quantity": 2,
           "unit_price": 13550000
         }
-      ]
+      ],
+      "recipient_name": "Siti Rahayu",
+      "recipient_phone": "+62-813-2222-0002",
+      "courier": null,
+      "tracking_number": null
     }
   ]
 }

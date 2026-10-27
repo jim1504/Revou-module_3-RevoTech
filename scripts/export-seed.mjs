@@ -40,18 +40,30 @@ const seed = {
     images: p.images ?? [],
     specs: p.specs ?? [],
     specs_source: orNull(p.specs_source),
+    option_groups: p.option_groups ?? [],
+    variants: p.variants ?? [],
   })),
   users: c.users.map(({ id, username, email, phone_number, address, role }) => ({ id, username, email, phone_number, address, role })),
-  orders: c.orders.map(({ order_id, user_id, order_status, shipping_address, ordered_at, items }) => ({
-    order_id,
-    user_id,
-    order_status,
-    shipping_address,
-    ordered_at,
-    items: items.map(({ product_id, quantity, unit_price }) => ({ product_id, quantity, unit_price })),
+  orders: c.orders.map((o) => ({
+    order_id: o.order_id,
+    user_id: o.user_id,
+    order_status: o.order_status,
+    shipping_address: o.shipping_address,
+    ordered_at: o.ordered_at,
+    recipient_name: o.recipient_name ?? null,
+    recipient_phone: o.recipient_phone ?? null,
+    courier: o.courier ?? null,
+    tracking_number: o.tracking_number ?? null,
+    items: o.items.map(({ product_id, variant_id, variant_label, quantity, unit_price }) => ({
+      product_id,
+      ...(variant_id ? { variant_id, variant_label } : {}),
+      quantity,
+      unit_price,
+    })),
   })),
   content: DEFAULT_CONTENT,
-  settings: DEFAULT_SETTINGS,
+  // the demo store's sender address for shipping labels (an empty default in a fresh install)
+  settings: { ...DEFAULT_SETTINGS, shop_address: "Jl. Teknologi Raya No. 8, Kebayoran Baru, Jakarta Selatan 12110" },
 };
 
 writeFileSync(OUT, JSON.stringify(seed, null, 2) + "\n");
